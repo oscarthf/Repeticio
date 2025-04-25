@@ -90,6 +90,7 @@ class LLM:
         self.client = OpenAI()
 
     def create_exercise(self,
+                        word_values,
                         word_keys,
                         exercise_type,
                         current_language,
@@ -100,6 +101,8 @@ class LLM:
 
         exercise = {
             "word_keys": word_keys,
+            "word_values": word_values,
+            "exercise_type": exercise_type,
             "initial_strings": [],
             "final_strings": [],
             "criteria": []

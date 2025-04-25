@@ -2,6 +2,8 @@
 from typing import Optional, Tuple, Dict, Any
 import datetime
 
+import uuid
+
 import numpy as np
 
 from ..util.constants import (EXERCISE_TYPES,
@@ -86,7 +88,8 @@ def empty_exercise_doc(exercise_key) -> Dict[Any, Any]:
     }
 
 def empty_word_entry(word_key,
-                     user_id) -> Dict[Any, Any]:
+                     user_id,
+                     language) -> Dict[Any, Any]:
 
     """
     Create an empty word entry for the database.
@@ -94,12 +97,14 @@ def empty_word_entry(word_key,
     return {
         "_id": word_key,
         "user_id": user_id,
+        "language": language,
         "last_visited_times": [],
         "last_scores": [],
         "is_locked": True
     }
 
 def empty_word_document(word_key,
+                        word_value,
                         language,
                         level) -> Dict[Any, Any]:
 
@@ -108,6 +113,7 @@ def empty_word_document(word_key,
     """
     return {
         "_id": word_key,
+        "word_value": word_value,
         "language": language,
         "level": level,
         "translations": [],
@@ -163,9 +169,12 @@ class GlobalContainer:
             return False
 
         for language, language_data in initial_words.items():
-            for level, word_keys in language_data.items():
-                for word_key in word_keys:
+            for level, word_values in language_data.items():
+                for word_value in word_values:
+                    word_key = str(uuid.uuid4())
+                    word_value = word_value.replace(" ", "_")
                     word_doc = empty_word_document(word_key,
+                                                   word_value,
                                                     language,
                                                     level)
                     self.words_collection.insert_one(word_doc)
@@ -219,6 +228,7 @@ class GlobalContainer:
     
     def get_user_words(self,
                         user_id,
+                        language,
                         is_locked) -> Optional[list]:
         """
         Get the user's words from the database.
@@ -232,6 +242,7 @@ class GlobalContainer:
         
         # Get the words list from the user words collection
         user_words = self.user_words_collection.find({"user_id": user_id, 
+                                                      "language": language,
                                                       "is_locked": is_locked})
         
         if not user_words:
@@ -389,8 +400,6 @@ class GlobalContainer:
             selected_word["last_visited_times"].pop(0)
             selected_word["last_scores"].pop(0)
 
-        user_words[index_of_word] = selected_word
-
         self.user_words_collection.update_one(
             {"_id": word_key,
              "user_id": user_id},
@@ -428,8 +437,15 @@ class GlobalContainer:
 
         if exercise_list is None or not len(exercise_list):
             print(f"No exercise list found for key '{exercise_key}'.")
+            word_values = [self.words_collection.find_one({"_id": word_key}) for word_key in word_keys]
+            word_values = [word["word_value"] for word in word_values if word is not None]
+            if not len(word_values) == len(word_keys):
+                print(f"Not all word keys found in the database for key '{exercise_key}'.")
+                return None
+            
             exercise_list = []
-            exercise = self.llm.create_exercise(word_keys,
+            exercise = self.llm.create_exercise(word_values,
+                                                word_keys,
                                                     exercise_type,
                                                     current_language,
                                                     current_level)
@@ -522,7 +538,8 @@ class GlobalContainer:
             return False
 
         word_entry = empty_word_entry(word_key,
-                                      user_id)
+                                      user_id,
+                                      current_language)
 
         self.user_words_collection.update_one(
             {"_id": word_key,
