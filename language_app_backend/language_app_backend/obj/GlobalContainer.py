@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 
 from ..util.constants import (EXCERSIZE_TYPES,
+                              NUMBER_OF_WORDS_PER_EXCERSIZE,
                               SUPPORTED_LANGUAGES,
                               INITIAL_WORD_KEYS_FOR_POPULATE,
                               NEXT_WORD_TEMPERATURE, 

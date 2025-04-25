@@ -50,13 +50,12 @@ INITIAL_WORD_KEYS_FOR_POPULATE = {
     },
 }
 
+
 EXCERSIZE_TYPES = [
     "multiple_choice",
     "fill_in_the_blank",
-    "translation",
-    "sentence_rearrangement",
-    "word_association",
-    "listening_comprehension",
-    "reading_comprehension",
-    "writing_prompt",
 ]
+NUMBER_OF_WORDS_PER_EXCERSIZE = {
+    "multiple_choice": 4,
+    "fill_in_the_blank": 2,
+}
