@@ -1,0 +1,5 @@
+Django==5.2
+social-auth-app-django==5.4.3
+social-auth-core==4.6.0
+python-dotenv==1.1.0
+pymongo==4.12.0
