@@ -56,6 +56,6 @@ EXCERSIZE_TYPES = [
     "fill_in_the_blank",
 ]
 NUMBER_OF_WORDS_PER_EXCERSIZE = {
-    "multiple_choice": 4,
+    "multiple_choice": 2,
     "fill_in_the_blank": 2,
 }

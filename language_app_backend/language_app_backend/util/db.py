@@ -6,6 +6,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 from ..obj.GlobalContainer import GlobalContainer
+from ..obj.LLM import LLM
 
 logger = logging.getLogger("language_app_backend.util.db")
 
@@ -23,7 +24,10 @@ def setup_globals():
         logger.error("Failed to connect to MongoDB")
         raise Exception("Failed to connect to MongoDB")
     
-    global_container = GlobalContainer(db_client)
+    llm = LLM()
+    
+    global_container = GlobalContainer(db_client,
+                                       llm)
     
     globals()["global_container"] = global_container
 

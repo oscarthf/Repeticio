@@ -89,6 +89,15 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
 
     return user_entry
 
+def empty_excersize_doc(excersize_key) -> Dict[Any, Any]:
+    """
+    Create an empty excersize document for the database.
+    """
+    return {
+        "_id": excersize_key,
+        "excersize_list": [],
+    }
+
 def empty_word_entry(word_key) -> Dict[Any, Any]:
 
     """
@@ -120,25 +129,41 @@ class GlobalContainer:
         "db",
         "words_collection",
         "users_collection",
+        "excersizes_collection",
     ]
-    def __init__(self, db_client):
+    def __init__(self, 
+                 db_client,
+                 llm) -> None:
 
         self.db_client = db_client
         self.db = db_client["language_app"]
         self.words_collection = self.db["words"]
         self.users_collection = self.db["users"]
+        self.excersizes_collection = self.db["excersizes"]
 
-        has_populated_initial_words = self.words_collection.count_documents({}) > 0
+        self.llm = llm
 
-        if not has_populated_initial_words:
-            self.populate_initial_words()
+        self.populate_initial_words()
 
-    def populate_initial_words(self) -> None:
+    def populate_initial_words(self) -> bool:
 
         """
         Populate the database with initial words.
         """
         
+        expected_num_words = 0
+        
+        for language, language_data in INITIAL_WORD_KEYS_FOR_POPULATE.items():
+            for level, word_keys in language_data.items():
+                for word_key in word_keys:
+                    expected_num_words += 1
+
+        has_populated_initial_words = self.words_collection.count_documents({}) == expected_num_words
+        
+        if has_populated_initial_words:
+            print("Initial words already populated in the database.")
+            return False
+
         for language, language_data in INITIAL_WORD_KEYS_FOR_POPULATE.items():
             for level, word_keys in language_data.items():
                 for word_key in word_keys:
@@ -149,6 +174,8 @@ class GlobalContainer:
 
         print(f"Inserted {len(INITIAL_WORD_KEYS_FOR_POPULATE)} initial words into the database.")
 
+        return True
+    
     def create_user(self, 
                     user_id,
                     language) -> bool:
@@ -182,8 +209,8 @@ class GlobalContainer:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
             return -1
 
-        language_data = user.get("languages", {}).get(current_language, {})
-        if not language_data:
+        language_data = user.get("languages", {}).get(current_language, None)
+        if language_data is None:
             print(f"No language data found for user {user_id} in language '{current_language}'.")
             return -1
         
@@ -326,6 +353,50 @@ class GlobalContainer:
 
         return True
     
+    def get_excersize(self,
+                        word_keys,
+                        excersize_type,
+                        current_language,
+                        current_level) -> Dict[Any, Any]:
+        """
+        Get an excersize for the user from the database.
+        """
+
+        sorted_word_keys = sorted(word_keys, key=lambda x: x.lower())
+        sorted_word_keys_combined = "_".join(sorted_word_keys)
+
+        excersize_key = f"{excersize_type}__{current_language}__{current_level}__{sorted_word_keys_combined}"
+
+        excersize_doc = self.excersizes_collection.find_one({"_id": excersize_key})
+
+        if not excersize_doc:
+            print(f"Excersize document not found for key '{excersize_key}'.")
+            excersize_doc = empty_excersize_doc(excersize_key)
+
+        print(f"Excersize document found for key '{excersize_key}'.")
+        excersize_list = excersize_doc.get("excersize_list", None)
+
+        if excersize_list is None or not len(excersize_list):
+            print(f"No excersize list found for key '{excersize_key}'.")
+            excersize_list = []
+            excersize = self.llm.create_excersize(word_keys,
+                                                    excersize_type,
+                                                    current_language,
+                                                    current_level)
+            excersize_list.append(excersize)
+            self.excersizes_collection.update_one(
+                {"_id": excersize_key},
+                {"$set": {
+                    "excersize_list": excersize_list
+                }}
+            )
+            print(f"Created new excersize for key '{excersize_key}': {excersize}.")
+        else:
+            excersize = np.random.choice(excersize_list)
+            print(f"Excersize found for key '{excersize_key}': {excersize}.")
+
+        return excersize
+        
     def get_new_excersize(self,
                           user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
         
@@ -344,9 +415,17 @@ class GlobalContainer:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
             return None, False
         
+        current_level = user.get("languages", {}).get(current_language, {}).get("current_level", None)
+        if current_level is None:
+            print(f"No current level found for user {user_id}.")
+            return None, False
+        
         excersize_type = np.random.choice(EXCERSIZE_TYPES)
 
         number_of_words_needed = NUMBER_OF_WORDS_PER_EXCERSIZE[excersize_type]
+
+        if number_of_words_needed > 1 and np.random.rand() < 0.5:
+            number_of_words_needed -= 1
 
         word_keys = []
 
@@ -361,10 +440,10 @@ class GlobalContainer:
             
             word_keys.append(word_key)
             
-        excersize = {
-            "word_keys": word_keys,
-            "excersize_type": excersize_type
-        }
+        excersize = self.get_excersize(word_keys, 
+                                       excersize_type,
+                                       current_language,
+                                       current_level)
 
         print(f"Generated new excersize for user {user_id}: {excersize}.")
 
