@@ -10,11 +10,11 @@ SUPPORTED_LANGUAGES = [
     # "ru",  # Russian
 ]
 
-EXCERSIZE_TYPES = [
+EXERCISE_TYPES = [
     "multiple_choice",
     "fill_in_the_blank",
 ]
-NUMBER_OF_WORDS_PER_EXCERSIZE = {
+NUMBER_OF_WORDS_PER_EXERCISE = {
     "multiple_choice": 2,
     "fill_in_the_blank": 2,
 }

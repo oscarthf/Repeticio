@@ -1,6 +1,8 @@
 
 from typing import Dict, Any
 
+from openai import OpenAI
+
 EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     "es": {
         0: [
@@ -51,25 +53,34 @@ class LLM:
         """
         Initialize the LLM class.
         """
-        pass
 
-    def create_excersize(self,
+        self.client = OpenAI()
+
+        response = self.client.responses.create(
+            model="gpt-4.1",
+            input="Write a one-sentence bedtime story about a unicorn."
+        )
+
+        print(response.output_text)
+
+
+    def create_exercise(self,
                         word_keys,
-                        excersize_type,
+                        exercise_type,
                         current_language,
                         current_level) -> Dict[Any, Any]:
         """
-        Create an excersize for the user from the database.
+        Create an exercise for the user from the database.
         """
 
-        excersize = {
+        exercise = {
             "word_keys": word_keys,
             "initial_strings": [],
             "final_strings": [],
             "criteria": []
         }
 
-        return excersize
+        return exercise
     
     def get_initial_words(self,
                           language):
