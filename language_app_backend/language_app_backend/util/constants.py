@@ -9,14 +9,6 @@ SUPPORTED_LANGUAGES = [
     # "pt",  # Portuguese
     # "ru",  # Russian
 ]
-SUPPORTED_CEFR_LEVELS = [
-    0, #"A1",
-    1, #"A2",
-    2, #"B1",
-    # 3, # "B2",
-    # 4, # "C1",
-    # 5, # "C2",
-]
 INITIAL_WORD_KEYS_FOR_POPULATE = {
     "es": {
         0: [
@@ -57,3 +49,14 @@ INITIAL_WORD_KEYS_FOR_POPULATE = {
         ]
     },
 }
+
+EXCERSIZE_TYPES = [
+    "multiple_choice",
+    "fill_in_the_blank",
+    "translation",
+    "sentence_rearrangement",
+    "word_association",
+    "listening_comprehension",
+    "reading_comprehension",
+    "writing_prompt",
+]
