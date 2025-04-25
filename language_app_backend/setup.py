@@ -17,4 +17,4 @@ setup(name="language_app_backend",
         description="Backend for language learning app",
         author="Oscar Fernandes",
         author_email="oscarthf@gmail.com",
-        packages=[project_folder])
+        packages=source_folders)

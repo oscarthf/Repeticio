@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+
 from django.apps import AppConfig
 
 from language_app_backend.util.db import setup_globals
@@ -7,6 +9,5 @@ class PlayerAppConfig(AppConfig):
     name = 'player_app'
     
     def ready(self):
-        # put your startup code here
-
+        load_dotenv()
         setup_globals()
