@@ -8,7 +8,7 @@ def home(request):
     # else:
     #     return HttpResponse("<h1>Page was found</h1>")
 
-    return render(request, "home.html", {"var": 1})
+    return render(request, "home.html")#, {"var": 1})
 
 def player(request):
-    return render(request, "player.html", {"var": 1})
+    return render(request, "player.html")#, {"var": 1})
