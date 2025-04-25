@@ -117,6 +117,7 @@ class GlobalContainer:
     __slots__ = [
         "db_client", 
         "db",
+        "settings_collection",
         "words_collection",
         "user_words_collection",
         "users_collection",

@@ -1,7 +1,17 @@
 
 from typing import Dict, Any
+import json
 
 from openai import OpenAI
+
+REAL_LANGUAGE_NAMES = {
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+}
 
 EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     "es": {
@@ -44,6 +54,29 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     },
 }
 
+INITIAL_WORD_PROMPT = """Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] organized by CEFR levels A1 (0), A2 (1), and B1 (2). For each level, include exactly 100 words that are common and useful at that level.
+Each list should include a balanced mix of:
+Common verbs (e.g. "to be", "to eat")
+Everyday nouns (e.g. "house", "water", "friend")
+Frequently used adjectives and adverbs (e.g. "fast", "beautiful", "often")
+Basic pronouns, prepositions, and conjunctions
+Words should reflect everyday language suitable for learners up to CEFR level B1.
+
+Format the output like this:
+
+json
+Copy code
+{
+  "xx": {
+    0: ["word1", "word2", "..."],
+    1: ["word1", "word2", "..."],
+    2: ["word1", "word2", "..."]
+  }
+}
+Replace "xx" with the language code (e.g., "es" for Spanish, "fr" for French).
+Do not include English translations. Only list the words as strings in arrays.
+"""
+
 class LLM:
 
     __slots__ = [
@@ -55,14 +88,6 @@ class LLM:
         """
 
         self.client = OpenAI()
-
-        response = self.client.responses.create(
-            model="gpt-4.1",
-            input="Write a one-sentence bedtime story about a unicorn."
-        )
-
-        print(response.output_text)
-
 
     def create_exercise(self,
                         word_keys,
@@ -88,5 +113,60 @@ class LLM:
         """
         Get the initial words for the given language.
         """
+
+        if not language in REAL_LANGUAGE_NAMES:
+            print(f"Language '{language}' is not supported.")
+            return None
         
+        real_language_name = REAL_LANGUAGE_NAMES[language]
+
+        language_str = f"{real_language_name} ({language})"
+
+        query_input = INITIAL_WORD_PROMPT.replace("[TARGET LANGUAGE]", language_str)
+
+        response = self.client.responses.create(
+            model="gpt-4.1",
+            input=query_input
+        )
+
+        print(response.output_text)
+
+        if not "{" in response.output_text or not "}" in response.output_text:
+            print("Invalid response format")
+            return None
+
+        start_index = response.output_text.find("{")
+        end_index = response.output_text.rfind("}")
+
+        json_string = response.output_text[start_index:end_index + 1]
+        try:
+            json_data = json.loads(json_string)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return None
+        
+        number_of_keys = len(json_data.keys())
+
+        if number_of_keys != 1:
+            print(f"Invalid number of keys in JSON: {number_of_keys}")
+            return None
+        
+        json_data = {language: json_data[json_data.keys()[0]]}
+        
+        if len(json_data[language]) != 3:
+            print(f"Invalid number of levels in JSON: {len(json_data[language])}")
+            return None
+
+        for level in json_data[language]:
+            if len(json_data[language][level]) != 100:
+                print(f"Invalid number of words in level {level}: {len(json_data[language][level])}")
+                return None
+            
+            for word in json_data[language][level]:
+                if not isinstance(word, str):
+                    print(f"Invalid word format in level {level}: {word}")
+                    return None
+
+        return json_data
+
         
