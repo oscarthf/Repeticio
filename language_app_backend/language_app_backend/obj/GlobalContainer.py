@@ -168,16 +168,15 @@ class GlobalContainer:
             print("No initial words found for the language.")
             return False
 
-        for language, language_data in initial_words.items():
-            for level, word_values in language_data.items():
-                for word_value in word_values:
-                    word_key = str(uuid.uuid4())
-                    word_value = word_value.replace(" ", "_")
-                    word_doc = empty_word_document(word_key,
-                                                   word_value,
-                                                    language,
-                                                    level)
-                    self.words_collection.insert_one(word_doc)
+        for level, word_values in initial_words[language].items():
+            for word_value in word_values:
+                word_key = str(uuid.uuid4())
+                word_value = word_value.replace(" ", "_")
+                word_doc = empty_word_document(word_key,
+                                                word_value,
+                                                language,
+                                                level)
+                self.words_collection.insert_one(word_doc)
 
         self.settings_collection.insert_one({
             "_id": f"initial_words_populated_{language}",
@@ -245,7 +244,9 @@ class GlobalContainer:
                                                       "language": language,
                                                       "is_locked": is_locked})
         
-        if not user_words:
+        user_words = list(user_words)
+        
+        if not len(user_words):
             print(f"No words found for user {user_id}.")
             return None
         
@@ -275,13 +276,17 @@ class GlobalContainer:
             print(f"No language data found for user {user_id} in language '{current_language}'.")
             return -1
         
-        words = self.get_user_words(user_id, False)
+        words = self.get_user_words(user_id, 
+                                    current_language,
+                                    False)
 
         if words is None:
             print(f"No words found for user {user_id}.")
             return -1
 
-        locked_words = self.get_user_words(user_id, True)
+        locked_words = self.get_user_words(user_id, 
+                                           current_language,
+                                           True)
 
         if locked_words is None:
             print(f"No locked words found for user {user_id}.")
@@ -454,7 +459,8 @@ class GlobalContainer:
                 {"_id": exercise_key},
                 {"$set": {
                     "exercise_list": exercise_list
-                }}
+                }},
+                upsert=True
             )
             print(f"Created new exercise for key '{exercise_key}': {exercise}.")
         else:
