@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseNotFound
+# from django.http import HttpResponse, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
+
+from language_app_backend.util.db import get_global_container
 
 DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
 
@@ -10,28 +12,26 @@ DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
 def login_view(request):
 
     if request.user.is_authenticated:
-        return redirect('player')  # or your desired post-login view
+        return redirect('home')  # or your desired post-login view
 
     return render(request, 'login.html')
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def home(request):
+
+    user_id = request.user.id
+
+    global_container = get_global_container()
+
+    global_container.create_user_if_not_exists(user_id)
+
+
+    # if 1:
+    #     return HttpResponseNotFound("<h1>Page not found</h1>")
+    # else:
+    #     return HttpResponse("<h1>Page was found</h1>")
     return render(request, 'home.html')
-
-# def home(request):
-#     # # ...
-#     # if 1:
-#     #     return HttpResponseNotFound("<h1>Page not found</h1>")
-#     # else:
-#     #     return HttpResponse("<h1>Page was found</h1>")
-
-#     return render(request, "home.html")#, {"var": 1})
-
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
-@login_required
-def player(request):
-    return render(request, "player.html")#, {"var": 1})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

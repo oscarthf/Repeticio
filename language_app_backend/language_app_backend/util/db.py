@@ -27,6 +27,14 @@ def setup_globals():
     
     globals()["global_container"] = global_container
 
+def get_global_container():
+
+    if "global_container" not in globals():
+        logger.error("Global container not set up")
+        raise Exception("Global container not set up")
+    
+    return globals()["global_container"]
+
 def create_connection():
 
     connection_string = os.environ.get("LANGUAGE_APP_DB_CONNECTION_STRING")
@@ -44,3 +52,4 @@ def test_connection(client):
     except Exception as e:
         print(e)
         return False
+    
