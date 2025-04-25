@@ -13,6 +13,116 @@ REAL_LANGUAGE_NAMES = {
     "ru": "Russian",
 }
 
+EXAMPLE_EXERCISES = {
+    "multiple_choice": {
+        0: {# A1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        1: {# A2
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        2: {# B1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+    },
+    "fill_in_the_blank": {
+        0: {# A1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        1: {# A2
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        2: {# B1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+    },
+
+}
+
 EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     "es": {
         0: [
@@ -93,8 +203,8 @@ class LLM:
                         word_values,
                         word_keys,
                         exercise_type,
-                        current_language,
-                        current_level) -> Dict[Any, Any]:
+                        language,
+                        level) -> Dict[Any, Any]:
         """
         Create an exercise for the user from the database.
         """
@@ -103,10 +213,16 @@ class LLM:
             "word_keys": word_keys,
             "word_values": word_values,
             "exercise_type": exercise_type,
+            "language": language,
+            "level": level,
             "initial_strings": [],
+            "middle_strings": [],
             "final_strings": [],
             "criteria": []
         }
+
+        if exercise_type == "multiple_choice":
+
 
         return exercise
     

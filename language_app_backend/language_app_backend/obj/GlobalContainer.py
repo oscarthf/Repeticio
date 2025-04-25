@@ -6,6 +6,8 @@ import uuid
 
 import numpy as np
 
+from pymongo import ASCENDING, DESCENDING
+
 from ..util.constants import (EXERCISE_TYPES,
                               NUMBER_OF_WORDS_PER_EXERCISE,
                               SUPPORTED_LANGUAGES,
@@ -143,7 +145,37 @@ class GlobalContainer:
 
         self.llm = llm
 
+        # Create indexes on commonly queried fields
+        self.create_indexes()
+
         self.populate_initial_words()
+
+    def create_indexes(self):
+
+        """
+        Create indexes on the database collections to speed up queries.
+        """
+
+        has_created_indexes = self.settings_collection.find_one({"_id": "indexes_created"})
+        if has_created_indexes:
+            print("Indexes already created in the database.")
+            return
+        
+        ##################################################################
+        
+        self.users_collection.create_index([('user_id', ASCENDING)], unique=True)
+
+        self.words_collection.create_index([('language', ASCENDING), ('level', ASCENDING)])
+
+        self.user_words_collection.create_index([('user_id', ASCENDING), ('_id', ASCENDING)])
+
+        ##################################################################
+
+        self.settings_collection.insert_one({
+            "_id": "indexes_created",
+            "created": True
+        })
+        print("Indexes created in the database.")
 
     def populate_initial_words(self, 
                                language) -> bool:
@@ -451,9 +483,9 @@ class GlobalContainer:
             exercise_list = []
             exercise = self.llm.create_exercise(word_values,
                                                 word_keys,
-                                                    exercise_type,
-                                                    current_language,
-                                                    current_level)
+                                                exercise_type,
+                                                current_language,
+                                                current_level)
             exercise_list.append(exercise)
             self.exercises_collection.update_one(
                 {"_id": exercise_key},
