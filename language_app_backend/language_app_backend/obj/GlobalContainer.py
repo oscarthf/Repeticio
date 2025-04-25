@@ -7,19 +7,8 @@ import numpy as np
 from ..util.constants import (EXCERSIZE_TYPES,
                               NUMBER_OF_WORDS_PER_EXCERSIZE,
                               SUPPORTED_LANGUAGES,
-                              INITIAL_WORD_KEYS_FOR_POPULATE,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH)
-
-# INITIAL_WORD_KEYS_FOR_POPULATE = {
-#     "es": {
-#         0: [
-#             "ser",
-#             ...
-#         ],
-#         ...
-#     },
-# }
 
 def next_word(word_keys, 
               word_scores, 
@@ -33,9 +22,9 @@ def next_word(word_keys,
     assert len(word_keys) == len(word_scores) == len(word_last_visited_times), "All lists must be of the same length."
     assert len(word_keys) > 0, "No words available to select from."
 
-    # adjusted score = (1 - score) * (1 + time_since_last_visit) - 1
+    # adjusted score = (1 - score) * (1 + time_since_last_visit)
 
-    word_last_visited_times = [datetime.datetime.fromisoformat(time) for time in word_last_visited_times]
+    word_last_visited_times = [datetime.datetime.fromtimestamp(time, tz=datetime.timezone.utc) for time in word_last_visited_times]
     current_time = datetime.datetime.now(datetime.timezone.utc)
 
     oldest_time = min(word_last_visited_times) if len(word_last_visited_times) else current_time
@@ -137,6 +126,7 @@ class GlobalContainer:
 
         self.db_client = db_client
         self.db = db_client["language_app"]
+        self.settings_collection = self.db["settings"]
         self.words_collection = self.db["words"]
         self.users_collection = self.db["users"]
         self.excersizes_collection = self.db["excersizes"]
@@ -145,26 +135,30 @@ class GlobalContainer:
 
         self.populate_initial_words()
 
-    def populate_initial_words(self) -> bool:
+    def populate_initial_words(self, 
+                               language) -> bool:
 
         """
         Populate the database with initial words.
         """
-        
-        expected_num_words = 0
-        
-        for language, language_data in INITIAL_WORD_KEYS_FOR_POPULATE.items():
-            for level, word_keys in language_data.items():
-                for word_key in word_keys:
-                    expected_num_words += 1
 
-        has_populated_initial_words = self.words_collection.count_documents({}) == expected_num_words
+        if language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{language}' for initial words.")
+            return False
         
+        has_populated_initial_words = self.settings_collection.find_one({"_id": f"initial_words_populated_{language}"})
+
         if has_populated_initial_words:
             print("Initial words already populated in the database.")
             return False
+        
+        initial_words = self.llm.get_initial_words(language)
 
-        for language, language_data in INITIAL_WORD_KEYS_FOR_POPULATE.items():
+        if not initial_words:
+            print("No initial words found for the language.")
+            return False
+
+        for language, language_data in initial_words.items():
             for level, word_keys in language_data.items():
                 for word_key in word_keys:
                     word_doc = empty_word_document(word_key,
@@ -172,9 +166,37 @@ class GlobalContainer:
                                                     level)
                     self.words_collection.insert_one(word_doc)
 
-        print(f"Inserted {len(INITIAL_WORD_KEYS_FOR_POPULATE)} initial words into the database.")
+        self.settings_collection.insert_one({
+            "_id": f"initial_words_populated_{language}",
+            "populated": True
+        })
+        print(f"Initial words populated in the database for language '{language}'.")
 
         return True
+    
+    def get_words_for_level(self,
+                            language,
+                            level) -> list:
+        
+        """
+        Get words for a specific level in a specific language.
+        """
+
+        if language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{language}' for initial words.")
+            return []
+        
+        if level not in [0, 1, 2]:
+            print(f"Unsupported level '{level}' for initial words.")
+            return []
+        
+        words = self.words_collection.find({"language": language, "level": level})
+
+        words_list = [word["_id"] for word in words]
+
+        print(f"Words for language '{language}' and level '{level}': {words_list}.")
+
+        return words_list
     
     def create_user(self, 
                     user_id,
@@ -221,13 +243,13 @@ class GlobalContainer:
             print(f"No locked words found for user {user_id}.")
             # check if the user is at the max level
             current_level = language_data.get("current_level", 0)
-            supported_levels = INITIAL_WORD_KEYS_FOR_POPULATE[current_language].keys()
+            supported_levels = [0, 1, 2]
             if current_level >= len(supported_levels) - 1:
                 print(f"User {user_id} is at the max level for language '{current_language}'.")
                 return 4
             
             # add next set of words to locked words
-            this_level_words = INITIAL_WORD_KEYS_FOR_POPULATE[current_language][current_level]
+            this_level_words = self.get_words_for_level(current_language, current_level)
 
             word_keys = [word["_id"] for word in words]
             this_level_words_not_in_words = [word for word in this_level_words if word not in word_keys]
@@ -314,7 +336,7 @@ class GlobalContainer:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
             return False
 
-        time_now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        time_now = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
         user_words = user.get("languages", {}).get(current_language, {}).get("words", None)
         if user_words is None:
