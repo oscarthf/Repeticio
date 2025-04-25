@@ -5,10 +5,26 @@ import threading
 
 import numpy as np
 
+from ..util.constants import (SUPPORTED_LANGUAGES,
+                              SUPPORTED_CEFR_LEVELS,
+                              INITIAL_WORD_KEYS_FOR_POPULATE,
+                              NEXT_WORD_TEMPERATURE, 
+                              MAX_HISTORY_LENGTH)
+
+# INITIAL_WORD_KEYS_FOR_POPULATE = {
+#     "es": {
+#         0: [
+#             "ser",
+#             ...
+#         ],
+#         ...
+#     },
+# }
+
 def next_word(word_keys, 
               word_scores, 
               word_last_visited_times,
-              temperature=0.01) -> str:
+              temperature=NEXT_WORD_TEMPERATURE) -> str:
     
     """
     Select the next word to show to the user based on their last visited times and scores.
@@ -53,6 +69,27 @@ def next_word(word_keys,
 
     return word_keys[best_word_index_after_noise]
 
+def empty_word_entry(word_key) -> dict:
+
+    """
+    Create an empty word entry for the database.
+    """
+    return {
+        "_id": word_key,
+        "last_visited_times": [],
+        "last_scores": [],
+    }
+
+def empty_word_document(word_key) -> dict:
+
+    """
+    Create an empty word document for the database.
+    """
+    return {
+        "_id": word_key,
+        "level": "A1"
+    }
+
 class GlobalContainer:
     __slots__ = [
         "db_client", 
@@ -60,6 +97,7 @@ class GlobalContainer:
         "words_collection",
         "users_collection",
         "insert_lock",
+        "initial_words",
     ]
     def __init__(self, db_client):
 
@@ -69,8 +107,48 @@ class GlobalContainer:
         self.users_collection = self.db["users"]
 
         self.insert_lock = threading.Lock()
+        
+        self.initial_words = self.get_initial_word_keys()
 
-    def create_user_if_not_exists(self, user_id) -> bool:
+        if not len(self.initial_words):
+            self.populate_initial_words()
+            self.initial_words = self.get_initial_word_keys()
+
+    def populate_initial_words(self) -> None:
+
+        """
+        Populate the database with initial words.
+        """
+        
+        if not len(INITIAL_WORD_KEYS_FOR_POPULATE):
+            print("No initial words to populate.")
+            return
+
+        for word_key in INITIAL_WORD_KEYS_FOR_POPULATE:
+            word_doc = empty_word_document(word_key)
+            self.words_collection.insert_one(word_doc)
+
+        print(f"Inserted {len(INITIAL_WORD_KEYS_FOR_POPULATE)} initial words into the database.")
+
+    def get_initial_word_keys(self) -> list:
+        """
+        Get the initial (A1) words from the database.
+        """
+        
+        initial_words = self.words_collection.find({"level": "A1"})
+
+        if not len(initial_words):
+            print("No initial words found in the database.")
+            return []
+
+        initial_word_keys = [word["_id"] for word in initial_words]
+
+        print(f"Found {len(initial_word_keys)} initial words in the database.")
+        
+        return initial_word_keys
+
+    def create_user_if_not_exists(self, 
+                                  user_id) -> bool:
         """
         Create a user in the database if it does not exist.
         """
@@ -81,14 +159,15 @@ class GlobalContainer:
                                                   "score": 0,
                                                   "xp": 0,
                                                   "words": [],
-                                                  "locked_words": INITIAL_LOCKED_WORDS,})
+                                                  "locked_words": [empty_word_entry(word) for word in self.initial_words],})
                 print(f"User {user_id} created in the database.")
                 return True
             else:
                 print(f"User {user_id} already exists in the database.")
                 return False
             
-    def check_if_should_unlock_new_word(self, user_id) -> int:
+    def check_if_should_unlock_new_word(self, 
+                                        user_id) -> int:
         """
         Check if the user should unlock a new word based on their score.
         """
@@ -142,22 +221,20 @@ class GlobalContainer:
             print(f"User {user_id} does not need to unlock a new word.")
             return 0
 
-    def update_word_in_user_word_list(self, user_id, word_key, score, max_history=5) -> bool:
+    def update_word_in_user_words(self, 
+                                  user_id, 
+                                  word_key, 
+                                  score) -> bool:
         """
         Update the word in the user's word list in the database.
         """
         
         user = self.users_collection.find_one({"user_id": user_id})
-        word_doc = self.words_collection.find_one({"_id": word_key})
         
         if not user:
             print(f"User {user_id} not found in the database.")
             return False
 
-        if not word_doc:
-            print(f"Word ID '{word_key}' not found in words_collection.")
-            return False
-        
         time_now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
         user_words = user.get("words", [])
@@ -175,7 +252,7 @@ class GlobalContainer:
         selected_word["last_scores"].append(score)
 
         # Limit the history size
-        if len(selected_word["last_visited_times"]) > max_history:
+        if len(selected_word["last_visited_times"]) > MAX_HISTORY_LENGTH:
             selected_word["last_visited_times"].pop(0)
             selected_word["last_scores"].pop(0)
 
@@ -191,32 +268,33 @@ class GlobalContainer:
 
         return True
 
-    def add_word_to_user_word_list(self, user_id, word_key):
+    def add_word_to_locked_words(self, user_id, word_key):
         """
         Add a word to the user's word list in the database.
         """
         
         user = self.users_collection.find_one({"user_id": user_id})
-        word_doc = self.words_collection.find_one({"_id": word_key})
         
         if not user:
             print(f"User {user_id} not found in the database.")
             return False
-
-        if not word_doc:
-            print(f"Word ID '{word_key}' not found in words_collection.")
-            return False
         
-        word_entry = {
-            "word_key": word_doc["_id"],
-            "last_visited_times": [],
-            "last_scores": [],
-        }
+        locked_words = user.get("locked_words", [])
+
+        word_keys = [word["_id"] for word in locked_words]
+        
+        if word_key in word_keys:
+            print(f"Word ID '{word_key}' already exists in user's locked words list.")
+            return False
+
+        word_entry = empty_word_entry(word_key)
+
+        locked_words.append(word_entry)
         
         with self.insert_lock:
             self.users_collection.update_one(
                 {"user_id": user_id},
-                {"$addToSet": {"words": word_entry}}
+                {"$set": {"locked_words": locked_words}}
             )
             print(f"Word ID '{word_key}' added to user {user_id}'s word list.")
 
