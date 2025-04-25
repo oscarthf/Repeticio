@@ -9,4 +9,4 @@ class PlayerAppConfig(AppConfig):
     def ready(self):
         # put your startup code here
 
-        setup_globals
+        setup_globals()

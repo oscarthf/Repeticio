@@ -4,6 +4,10 @@ import os
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+def setup_globals():
+
+    pass
+
 def test_connection():
 
     uri = os.environ.get("LANGUAGE_APP_DB_CONNECTION_STRING")
