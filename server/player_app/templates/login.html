@@ -3,12 +3,16 @@
 {% load static %}
 
 {% block title %}Sign in{% endblock %} 
-{% block content %} 
-    <div class="row">
-        <div class="col-md-8 mx-auto social-container my-2 order-md-1">
-            <button>
-                <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login With Google</a>
-            </button>
-        </div>
+{% block content %}
+
+    <div class="main_content">
+        <button>
+            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login With Google</a>
+        </button>
     </div>
+    
+    <script src="{% static 'js/common.js' %}"></script>
+
+    <script src="{% static 'js/login.js' %}"></script>
+
 {% endblock %}

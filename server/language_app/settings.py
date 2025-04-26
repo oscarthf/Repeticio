@@ -141,13 +141,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATICFILES_DIRS = [
-    # BASE_DIR / "static",  # Add your global static folder here if it exists
-    # '/app/server/static',
-]
-
-# if not DEBUG:
-STATIC_ROOT = '/app/server/static'
+if DEBUG:
+    STATICFILES_DIRS = [
+        BASE_DIR / "static",
+    ]
+else:
+    STATIC_ROOT = '/app/server/static'
 
 STATIC_URL = '/static/'
 

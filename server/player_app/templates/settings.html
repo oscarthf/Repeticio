@@ -9,17 +9,18 @@
     <a href="{% url 'create_checkout_session' %}">
         <button>Subscribe Now</button>
     </a>
- -->
+-->
 
-    <a href="{% url 'customer_portal' %}">
-        <button>Manage Subscription</button>
-    </a>
-
-    <div class="row">
-        <div class="col-sm-12 mb-3">
-            <h4 class="text-center">Settings for {{ user.username }}</h4>
-        </div>
+    <div class="main_content">
+        <h4 class="main_title">Settings for {{ user.username }}</h4>
+    
+        <button>
+            <a href="{% url 'customer_portal' %}">Manage Subscription</a>
+        </button>
+    
+    
     </div>
+
     
     <script src="{% static 'js/common.js' %}"></script>
     

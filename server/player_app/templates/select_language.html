@@ -2,12 +2,15 @@
 
 {% load static %} 
 
-{% block title %}Open Language App{% endblock %} 
+{% block title %}Open Language App | Select a Language{% endblock %} 
 {% block content %}
 
-    <div class="row">
-        <div class="col-sm-12 mb-3">
-            <h4 class="text-center">Welcome {{ user.username }}</h4>
+    <div class="main_content">
+        <h4 class="main_title">Welcome {{ user.username }}</h4>
+
+        <div id="language_selection_wrapper" class="language_selection">
+            <h4 class="secondary_title">Select a Language</h4>    
+            <div class="language_list"></div>
         </div>
     </div>
 
@@ -19,7 +22,7 @@
         let user_id = "{{ user.email }}";
         let languages = [
             {% for language in languages %}
-                "{{ language }}",
+                ["{{ language.code }}", "{{ language.name }}"]
             {% endfor %}
         ];
 

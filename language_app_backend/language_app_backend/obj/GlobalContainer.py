@@ -335,7 +335,12 @@ class GlobalContainer:
         Get the list of supported languages.
         """
 
-        languages = [f"{key}_{value}" for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
+        class Language:
+            def __init__(self, code, name):
+                self.name = name
+                self.code = code
+
+        languages = [Language(key, value) for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
 
         return languages
     
