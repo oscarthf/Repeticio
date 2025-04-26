@@ -10,7 +10,7 @@
 
         <div id="language_selection_wrapper" class="language_selection">
             <h4 class="secondary_title">Select a Language</h4>    
-            <div class="language_list"></div>
+            <div id="language_list"></div>
         </div>
     </div>
 
@@ -18,6 +18,7 @@
     
     <script>
         
+        let base_url = "{{ request.scheme }}://{{ request.get_host }}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
         let languages = [

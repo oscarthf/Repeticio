@@ -178,16 +178,22 @@ def home(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    # check if language is set
-    data = request.GET
-    if not data:
-        return redirect('select_language')
-    language = data.get("language")
-    if not language:
-        return redirect('select_language')
     
     global_container = get_global_container()
     
+    # check if language is set
+    language = global_container.get_user_language(user_id)
+
+    if language is None:
+
+        data = request.GET
+        if not data:
+            return redirect('select_language')
+        
+        language = data.get("language")
+        if not language:
+            return redirect('select_language')
+        
     ######################
 
     success = global_container.create_user_if_needed(user_id,

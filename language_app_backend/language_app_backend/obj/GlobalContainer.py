@@ -344,6 +344,27 @@ class GlobalContainer:
 
         return languages
     
+    def get_user_languages(self,
+                            user_id) -> Optional[str]:
+        
+        """
+        Get the user's languages from the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return None
+        
+        current_language = user.get("current_language", None)
+
+        if current_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_language}' for user {user_id}.")
+            return None
+        
+        return current_language
+    
     def create_user_if_needed(self, 
                               user_id,
                               language) -> bool:
