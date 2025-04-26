@@ -143,9 +143,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Add your global static folder here if it exists
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",  # Add your global static folder here if it exists
+# ]
+
+if not DEBUG:
+    STATIC_ROOT = BASE_DIR / 'static'  # This is where collectstatic will put the files
+else:
+    STATICFILES_DIRS = [
+        BASE_DIR / "static",  # Add your global static folder here if it exists
+        # Add any other static folders you want to include
+        # e.g., BASE_DIR / "another_static_folder",
+    ]
+
 STATIC_URL = '/static/'
 
 # Default primary key field type
