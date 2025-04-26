@@ -6,7 +6,7 @@ import uuid
 
 import numpy as np
 
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING as PY_MONGO_ASCENDING
 
 from ..util.constants import (EXERCISE_TYPES,
                               NUMBER_OF_WORDS_PER_EXERCISE,
@@ -163,11 +163,10 @@ class GlobalContainer:
         
         ##################################################################
         
-        self.users_collection.create_index([('user_id', ASCENDING)], unique=True)
-
-        self.words_collection.create_index([('language', ASCENDING), ('level', ASCENDING)])
-
-        self.user_words_collection.create_index([('user_id', ASCENDING), ('_id', ASCENDING)])
+        self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
+        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
+        self.users_collection.create_index([('user_id', PY_MONGO_ASCENDING)], unique=True)
+        self.exercises_collection.create_index([('_id', PY_MONGO_ASCENDING)])
 
         ##################################################################
 

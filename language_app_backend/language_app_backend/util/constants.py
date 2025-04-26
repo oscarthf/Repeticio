@@ -10,6 +10,15 @@ SUPPORTED_LANGUAGES = [
     # "ru",  # Russian
 ]
 
+REAL_LANGUAGE_NAMES = {
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+}
+
 EXERCISE_TYPES = [
     "multiple_choice",
     "fill_in_the_blank",

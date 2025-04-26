@@ -1,0 +1,188 @@
+
+EXAMPLE_EXERCISES = {
+    "multiple_choice": {
+        0: {# A1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        1: {# A2
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        2: {# B1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "multiple_choice",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+    },
+    "fill_in_the_blank": {
+        0: {# A1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        1: {# A2
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+        2: {# B1
+                "word_keys": ["abc", "def"],
+                "word_values": ["estar", "listo"],
+                "exercise_type": "fill_in_the_blank",
+                "initial_strings": [
+
+                ],
+                "middle_strings": [
+
+                ],
+                "final_strings": [
+
+                ],
+                "criteria": [
+
+                ]
+            },
+    },
+
+}
+
+MULTIPLE_CHOICE_EXERCISE_PROMPT = """
+Create a multiple-choice exercise for [TARGET LANGUAGE] at [TARGET LEVEL] using the following words: [TARGET WORDS].
+
+"""
+
+FILL_IN_THE_BLANK_EXERCISE_PROMPT = """
+"""
+
+EXAMPLE_WORD_KEYS_FOR_POPULATE = {
+    "es": {
+        0: [
+            "ser", "estar", "tener", "hacer", "ir", "decir", "comer", "beber", "vivir", "hablar",
+            "casa", "escuela", "coche", "amigo", "madre", "padre", "niño", "agua", "pan", "leche",
+            "sí", "no", "hola", "adiós", "gracias", "por favor", "lo siento", "bien", "mal", "mucho",
+            "poco", "grande", "pequeño", "bonito", "feo", "rápido", "lento", "caliente", "frío", "día",
+            "noche", "mañana", "hoy", "ayer", "uno", "dos", "tres", "cuatro", "cinco", "más",
+            "menos", "también", "pero", "porque", "cómo", "qué", "quién", "dónde", "cuándo", "por qué",
+            "yo", "tú", "él", "ella", "nosotros", "vosotros", "ellos", "mi", "tu", "su",
+            "este", "ese", "aquí", "allí", "muy", "ya", "siempre", "nunca", "a", "de",
+            "en", "con", "sin", "para", "sobre", "entre", "abajo", "arriba", "dentro", "fuera",
+            "hora", "minuto", "segundo", "trabajo", "libro", "mesa", "silla", "gato", "perro", "calle"
+        ],
+        1: [
+            "buscar", "encontrar", "esperar", "necesitar", "entrar", "salir", "llevar", "usar", "abrir", "cerrar",
+            "empezar", "terminar", "ayudar", "llamar", "viajar", "volver", "cambiar", "pagar", "comprar", "vender",
+            "siempre", "a veces", "casi", "nunca", "temprano", "tarde", "seguro", "ocupado", "libre", "feliz",
+            "triste", "cansado", "nervioso", "tranquilo", "sucio", "limpio", "nuevo", "viejo", "barato", "caro",
+            "primero", "último", "izquierdo", "derecho", "recto", "cerca", "lejos", "norte", "sur", "este",
+            "oeste", "estación", "aeropuerto", "tren", "autobús", "viaje", "maleta", "pasaporte", "dinero", "tarjeta",
+            "banco", "tienda", "mercado", "supermercado", "ropa", "zapatos", "camisa", "pantalón", "chaqueta", "vestido",
+            "comida", "fruta", "verdura", "carne", "pescado", "azúcar", "sal", "aceite", "arroz", "huevo",
+            "cocina", "baño", "dormitorio", "salón", "ventana", "puerta", "pared", "suelo", "techo", "lugar",
+            "ciudad", "pueblo", "campo", "playa", "montaña", "clima", "tiempo", "calor", "lluvia", "nieve"
+        ],
+        2: [
+            "desear", "odiar", "gustar", "molestar", "preocupar", "sorprender", "imaginar", "recordar", "olvidar", "proponer",
+            "sugerir", "intentar", "decidir", "desarrollar", "mejorar", "empeorar", "discutir", "convencer", "permitir", "prohibir",
+            "deber", "soler", "parecer", "importar", "significar", "crecer", "nacer", "morir", "herir", "curar",
+            "enfermedad", "medicina", "médico", "paciente", "dolor", "fiebre", "tos", "sangre", "corazón", "cuerpo",
+            "mente", "espíritu", "empresa", "jefe", "compañero", "entrevista", "sueldo", "horario", "reunión", "proyecto",
+            "éxito", "fracaso", "responsabilidad", "oportunidad", "decisión", "duda", "razón", "causa", "consecuencia", "problema",
+            "solución", "ventaja", "desventaja", "cultura", "historia", "política", "economía", "sociedad", "religión", "medio ambiente",
+            "contaminación", "naturaleza", "energía", "recurso", "tecnología", "internet", "red", "aplicación", "móvil", "correo",
+            "mensaje", "señal", "archivo", "documento", "idioma", "lengua", "traducción", "significado", "expresión", "opinión",
+            "argumento", "noticia", "periódico", "revista", "televisión", "canal", "programa", "película", "personaje", "escena"
+        ]
+    },
+}
+
+INITIAL_WORD_PROMPT = """
+Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] organized by CEFR levels A1 (0), A2 (1), and B1 (2). For each level, include exactly 100 words that are common and useful at that level.
+Each list should include a balanced mix of:
+Common verbs (e.g. "to be", "to eat")
+Everyday nouns (e.g. "house", "water", "friend")
+Frequently used adjectives and adverbs (e.g. "fast", "beautiful", "often")
+Basic pronouns, prepositions, and conjunctions
+Words should reflect everyday language suitable for learners up to CEFR level B1.
+
+Format the output like this:
+
+json
+Copy code
+{
+  "xx": {
+    0: ["word1", "word2", "..."],
+    1: ["word1", "word2", "..."],
+    2: ["word1", "word2", "..."]
+  }
+}
+Replace "xx" with the language code (e.g., "es" for Spanish, "fr" for French).
+Do not include English translations. Only list the words as strings in arrays.
+"""
+
+REVISE_VOCABULARY_PROMPT = """
+Revise the vocabulary for [TARGET LANGUAGE] at [TARGET LEVEL].
+"""
+
