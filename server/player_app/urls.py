@@ -10,7 +10,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('social-auth/', include('social_django.urls', namespace='social')),
 
-    path('', views.player, name='player'),
+    path('', views.home, name='home'),
     path('settings', views.settings, name='settings'),
 
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),

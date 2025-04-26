@@ -119,7 +119,7 @@ def validate_exercise(exercise: Dict[str, Any], word_values: list) -> bool:
 class LLM:
 
     __slots__ = [
-        
+        "client",
     ]
     def __init__(self) -> None:
         """
@@ -347,7 +347,7 @@ class LLM:
             print(f"Invalid number of keys in JSON: {number_of_keys}")
             return None
         
-        json_data = {language: json_data[json_data.keys()[0]]}
+        json_data = {language: json_data[list(json_data.keys())[0]]}
         
         if len(json_data[language]) != 3:
             print(f"Invalid number of levels in JSON: {len(json_data[language])}")

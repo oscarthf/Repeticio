@@ -4,6 +4,7 @@ from setuptools import setup
 source_folders = [
     "util",
     "obj",
+    "util/prompts"
 ]
 
 project_folder = "language_app_backend"
