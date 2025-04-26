@@ -132,6 +132,10 @@ class GlobalContainer:
         "user_words_collection",
         "users_collection",
         "exercises_collection",
+        "exercises_by_id_collection",
+        "exercise_thumbs_up_collection",
+        "exercise_thumbs_down_collection",
+        "llm",
     ]
     def __init__(self, 
                  db_client,
@@ -144,6 +148,7 @@ class GlobalContainer:
         self.user_words_collection = self.db["user_words"]
         self.users_collection = self.db["users"]
         self.exercises_collection = self.db["exercises"]
+        self.exercises_by_id_collection = self.db["exercises_by_id"]
         self.exercise_thumbs_up_collection = self.db["exercise_thumbs_up"]
         self.exercise_thumbs_down_collection = self.db["exercise_thumbs_down"]
 
@@ -238,12 +243,9 @@ class GlobalContainer:
             return []
         
         words = self.words_collection.find({"language": language, "level": level})
+        words = list(words)
 
-        words_list = [word["_id"] for word in words]
-
-        print(f"Words for language '{language}' and level '{level}': {words_list}.")
-
-        return words_list
+        return words
     
     def create_user(self, 
                     user_id,
@@ -338,11 +340,12 @@ class GlobalContainer:
             
             # add next set of words to locked words
             this_level_words = self.get_words_for_level(current_language, current_level)
+            this_level_word_keys = [word["_id"] for word in this_level_words]
 
             word_keys = [word["_id"] for word in words]
-            this_level_words_not_in_words = [word for word in this_level_words if word not in word_keys]
+            this_level_word_keys_not_in_words = [word for word in this_level_word_keys if word not in word_keys]
             
-            if not len(this_level_words_not_in_words):
+            if not len(this_level_word_keys_not_in_words):
                 print(f"User {user_id} already has all words for level {current_level}.")
                 current_level += 1
                 # increase level
@@ -355,7 +358,7 @@ class GlobalContainer:
                 print(f"User {user_id} is now at level {current_level}.")
                 return 3
             
-            random_word_key = np.random.choice(this_level_words_not_in_words)
+            random_word_key = np.random.choice(this_level_word_keys_not_in_words)
 
             self.add_word_to_locked_words(user_id,
                                             random_word_key,
@@ -539,6 +542,16 @@ class GlobalContainer:
         )
         print(f"Created new exercise for key '{exercise_key}': {exercise}.")
 
+        self.exercises_by_id_collection.update_one(
+            {"exercise_id": exercise["exercise_id"]},
+            {"$set": {
+                "exercise_id": exercise["exercise_id"],
+                "created_at": exercise["created_at"],
+                "exercise_key": exercise_key,
+            }},
+            upsert=True
+        )
+
         return exercise_list
     
     def revise_exercise_list(self,
@@ -572,9 +585,55 @@ class GlobalContainer:
         # remove the worst exercise from the list
         worst_exercise = exercise_list.pop(worst_exercise_index)
         print(f"Removing worst exercise: {worst_exercise}.")
+
+        # # remove from the exercises_by_id collection
+        # worst_exercise_id = worst_exercise["exercise_id"]
+        # self.exercises_by_id_collection.delete_one({"exercise_id": worst_exercise_id})
         
         return exercise_list
         
+    def submit_answer(self,
+                      user_id,
+                      exercise_id,
+                      answer) -> Tuple[bool, str]:
+        
+        """
+        Submit the answer to the exercise in the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False, "User not found in the database."
+            
+        if not exercise_id or not answer:
+            return False, "Missing exercise_id or answer."
+        
+        # Validate the exercise_id and answer
+        if not answer.isdigit():
+            return False, "Answer must be a digit."
+
+        answer = int(answer)
+
+        if not answer >= 0 and answer <= 5:
+            return False, "Answer must be between 0 and 5."
+
+        if not isinstance(exercise_id, str):
+            return False, "exercise_id must be a string."
+        
+        # check if exercise_id is a valid UUID
+        try:
+            uuid.UUID(exercise_id, version=4)
+        except ValueError:
+            return False, "exercise_id is not a valid UUID."
+        
+        ##########################################################################
+
+        # check if exercise_id exists in the database
+        exercise = self.exercises_by_id_collection.find_one({"exercise_id": exercise_id})
+
+
     def get_new_exercise(self,
                           user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
         

@@ -167,9 +167,16 @@ class LLM:
         query_input = query_input.replace("[TARGET LEVEL]", level_str)
         query_input = query_input.replace("[TARGET WORDS]", words_str)
 
-        query_input += "Answers in the examples may be wrong, please respond with a correct answer in the 'criteria' field."
-
-
+        query_input += "\nAnswers in the examples may be wrong, please respond with a correct answer in the 'criteria' field."
+        query_input += "\nAgain, the words in your question should be:\n"
+        query_input += f"{words_str}"
+        query_input += "\n\nPlease respond with a JSON object with the following keys:\n"
+        query_input += "- word_values\n"
+        query_input += "- initial_strings\n"
+        query_input += "- middle_strings\n"
+        query_input += "- final_strings\n"
+        query_input += "- criteria\n"
+        
         response = self.client.responses.create(
             model=OPENAI_MODEL_NAME,
             input=query_input
