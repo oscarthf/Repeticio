@@ -3,11 +3,11 @@ FROM python:3.10
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3-setuptools
 
-# Copy the requirements file into the container
-COPY requirements.txt /app/requirements.txt
-
 # Update pip to the latest version
 RUN python -m pip install --upgrade pip
+
+# Copy the requirements file into the container
+COPY requirements.txt /app/requirements.txt
 
 # Set the working directory
 WORKDIR /app

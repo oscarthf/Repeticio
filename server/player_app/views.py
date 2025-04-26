@@ -13,10 +13,12 @@ from django_ratelimit.decorators import ratelimit
 try:
     from language_app_backend.util.db import get_global_container
     from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
-                                                    DEFAULT_RATELIMIT)
+                                                     DO_NOT_CHECK_SUBSCRIPTION,
+                                                     DEFAULT_RATELIMIT,
+                                                     OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
 except ImportError:
     print("ImportError: language_app_backend not found. ")
-    
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def check_subscription_active(user_id) -> bool:
@@ -38,6 +40,9 @@ def check_subscription_active(user_id) -> bool:
     return False  # No active subscription
 
 def check_subscription_pipeline(global_container, user_id) -> bool:
+
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return True
 
     current_time = datetime.datetime.now(datetime.timezone.utc)
     
@@ -68,7 +73,7 @@ def create_checkout_session(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
 
     # Create Stripe checkout session
@@ -79,8 +84,8 @@ def create_checkout_session(request):
             'price': settings.STRIPE_PRICE_ID,  # We'll set this in a minute
             'quantity': 1,
         }],
-        success_url=f'{settings.FRONTEND_URL}/player/settings?session_id={{CHECKOUT_SESSION_ID}}',
-        cancel_url=f'{settings.FRONTEND_URL}/player/settings',
+        success_url=f'{settings.FRONTEND_URL}/settings?session_id={{CHECKOUT_SESSION_ID}}',
+        cancel_url=f'{settings.FRONTEND_URL}/settings',
         customer_email=request.user.email,  # Important: use user's email from Google login
     )
     return redirect(session.url, code=303)
@@ -132,7 +137,7 @@ def customer_portal(request):
 
     session = stripe.billing_portal.Session.create(
         customer=customer.id,
-        return_url=f'{settings.FRONTEND_URL}/player/settings',
+        return_url=f'{settings.FRONTEND_URL}/settings',
     )
     return redirect(session.url)
 
@@ -142,7 +147,7 @@ def settings(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     # check if language is set
     data = request.GET
@@ -171,7 +176,7 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     # check if language is set
     data = request.GET
@@ -208,7 +213,7 @@ def select_language(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
     languages = global_container.get_languages()
@@ -225,7 +230,7 @@ def get_new_exercise(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
 
@@ -252,7 +257,7 @@ def get_user_object(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
     
@@ -278,7 +283,7 @@ def submit_answer(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
     
@@ -316,7 +321,7 @@ def get_user_words(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
-    if len(settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in settings.OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
     

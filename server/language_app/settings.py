@@ -16,11 +16,9 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LOGIN_URL = '/player/login/'
-LOGIN_REDIRECT_URL = '/player/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -31,7 +29,7 @@ SECRET_KEY = 'django-insecure-6d278w=0++-%woo0ei(o0i1uc5&d(k8y83&q-0sloct2ub9yvp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ["http://localhost:8000", "https://openlanguageapp.xyz"]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'openlanguageapp.xyz']
 
 # Application definition
 

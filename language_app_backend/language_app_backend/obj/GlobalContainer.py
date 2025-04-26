@@ -362,8 +362,24 @@ class GlobalContainer:
         self.users_collection.insert_one(new_user)
         
         print(f"User {user_id} created in the database.")
+
         return True
     
+    def vocabulary_background_function_inner(self):
+        """
+        Inner function to revise vocabulary periodically.
+        """
+        
+        for language in SUPPORTED_LANGUAGES:
+            if language not in self.last_time_revised_vocabulary:
+                self.last_time_revised_vocabulary[language] = 0
+
+            current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+            if current_time - self.last_time_revised_vocabulary[language] > VOCABULARY_REVISION_INTERVAL:  # 24 hours
+                self.revise_vocabulary(language)
+                self.last_time_revised_vocabulary[language] = current_time
+
     def vocabulary_background_function(self) -> None:
 
         """
@@ -371,16 +387,11 @@ class GlobalContainer:
         """
     
         while True:
-
-            for language in SUPPORTED_LANGUAGES:
-                if language not in self.last_time_revised_vocabulary:
-                    self.last_time_revised_vocabulary[language] = 0
-
-                current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-
-                if current_time - self.last_time_revised_vocabulary[language] > VOCABULARY_REVISION_INTERVAL:  # 24 hours
-                    self.revise_vocabulary(language)
-                    self.last_time_revised_vocabulary[language] = current_time
+            
+            try:
+                self.vocabulary_background_function_inner()
+            except Exception as e:
+                print(f"Error in vocabulary background function: {e}")
 
             time.sleep(60 * 60)  # Run every hour
 
@@ -391,8 +402,6 @@ class GlobalContainer:
         """
 
         while True:
-            # Clean up old exercises and user words
-            current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
             # ...
 
