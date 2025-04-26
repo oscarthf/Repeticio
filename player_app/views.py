@@ -27,7 +27,13 @@ def home(request):
     global_container = get_global_container()
     global_container.create_user_if_not_exists(user_id)
 
-    return render(request, 'home.html')
+    # user_object = global_container.get_user_object(user_id)
+
+    # if user_object is None:
+    #     return JsonResponse({"error": "Failed to get user object"}, status=500)
+
+    return render(request, 'home.html',
+                  {"user_id": user_id})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -35,7 +41,8 @@ def settings(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.id
-    return render(request, "settings.html", {"user_id": user_id})
+    return render(request, "settings.html", 
+                  {"user_id": user_id})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -54,12 +61,28 @@ def get_new_exercise(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
+def get_user_object(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+    user_id = request.user.id
+    global_container = get_global_container()
+    user_object = global_container.get_user_object(user_id)
+
+    if user_object is None:
+        return JsonResponse({"error": "Failed to get user object"}, status=500)
+    
+    return JsonResponse(user_object, status=200)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
 def submit_answer(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.id
     global_container = get_global_container()
     data = request.POST
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
 
     exercise_id = data.get("exercise_id")
     answer = data.get("answer")
@@ -75,3 +98,25 @@ def submit_answer(request):
         return JsonResponse({"error": message}, status=500)
     
     return JsonResponse({"message": message}, status=200)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def get_user_words(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+    user_id = request.user.id
+    global_container = get_global_container()
+    data = request.GET
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    language = data.get("language")
+    is_locked = data.get("is_locked")
+    if not language or is_locked is None:
+        return JsonResponse({"error": "Missing language or is_locked"}, status=400)
+    is_locked = True if is_locked.lower() == "true" else False
+    words = global_container.get_user_words(user_id, language, is_locked)
+
+    if words is None:
+        return JsonResponse({"error": "Failed to get user words"}, status=500)
+    
+    return JsonResponse(words, status=200)

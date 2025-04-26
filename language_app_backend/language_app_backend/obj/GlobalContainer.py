@@ -262,12 +262,10 @@ class GlobalContainer:
         print(f"User {user_id} created in the database.")
         return True
     
-    def get_user_words(self,
-                        user_id,
-                        language,
-                        is_locked) -> Optional[list]:
+    def get_user_object(self,
+                        user_id) -> Optional[Dict[Any, Any]]:
         """
-        Get the user's words from the database.
+        Get the user object from the database.
         """
 
         user = self.users_collection.find_one({"user_id": user_id})
@@ -276,6 +274,24 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return None
         
+        return user
+    
+    def get_user_words(self,
+                        user_id,
+                        language,
+                        is_locked) -> Optional[list]:
+        """
+        Get the user's words from the database.
+        """
+
+        if not language in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{language}' for user {user_id}.")
+            return None
+        
+        if not isinstance(is_locked, bool):
+            print(f"Invalid is_locked value '{is_locked}' for user {user_id}.")
+            return None
+
         # Get the words list from the user words collection
         user_words = self.user_words_collection.find({"user_id": user_id, 
                                                       "language": language,
@@ -586,10 +602,11 @@ class GlobalContainer:
         worst_exercise = exercise_list.pop(worst_exercise_index)
         print(f"Removing worst exercise: {worst_exercise}.")
 
-        # # remove from the exercises_by_id collection
-        # worst_exercise_id = worst_exercise["exercise_id"]
-        # self.exercises_by_id_collection.delete_one({"exercise_id": worst_exercise_id})
-        
+        if 1:
+            # remove from the exercises_by_id collection
+            worst_exercise_id = worst_exercise["exercise_id"]
+            self.exercises_by_id_collection.delete_one({"exercise_id": worst_exercise_id})
+            
         return exercise_list
         
     def submit_answer(self,
@@ -601,12 +618,6 @@ class GlobalContainer:
         Submit the answer to the exercise in the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
-
-        if not user:
-            print(f"User {user_id} not found in the database.")
-            return False, "User not found in the database."
-            
         if not exercise_id or not answer:
             return False, "Missing exercise_id or answer."
         
@@ -633,6 +644,89 @@ class GlobalContainer:
         # check if exercise_id exists in the database
         exercise = self.exercises_by_id_collection.find_one({"exercise_id": exercise_id})
 
+        if not exercise:
+            print(f"Exercise ID '{exercise_id}' not found in the database.")
+            return False, "Exercise ID not found in the database."
+        
+        exercise_criteria = exercise.get("criteria", None)
+
+        if exercise_criteria is None:
+            print(f"Exercise ID '{exercise_id}' has no criteria.")
+            return False, "Exercise ID has no criteria."
+        
+        word_keys = exercise.get("word_keys", None)
+
+        if word_keys is None:
+            print(f"Exercise ID '{exercise_id}' has no word keys.")
+            return False, "Exercise ID has no word keys."
+        
+        was_correct = True
+
+        if exercise_criteria != answer:
+            print(f"Exercise ID '{exercise_id}' has wrong answer: {exercise_criteria} != {answer}.")
+            was_correct = False
+        
+        self.update_user_word_score(user_id,
+                                    word_keys,
+                                    was_correct)
+        
+        if was_correct:
+            return True, "Correct answer."
+        else:
+            return False, "Wrong answer."
+        
+    def update_user_word_score(self,
+                                user_id,
+                                word_keys,
+                                was_correct) -> bool:
+        
+        """
+        Update the user's word score in the database.
+        """
+
+        for word_key in word_keys:
+
+            user_word = self.user_words_collection.find_one({"_id": word_key,
+                                                            "user_id": user_id})
+            
+            if not user_word:
+                print(f"Word ID '{word_key}' not found in user's word list.")
+                continue
+            
+            last_scores = user_word.get("last_scores", None)
+
+            if last_scores is None:
+                print(f"Word ID '{word_key}' has no last scores.")
+                last_scores = []
+
+            last_visited_times = user_word.get("last_visited_times", None)
+
+            if last_visited_times is None:
+                print(f"Word ID '{word_key}' has no last visited times.")
+                last_visited_times = []
+
+            # append new score and time
+
+            time_now = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+            last_scores.append(1 if was_correct else 0)
+            last_visited_times.append(time_now)
+
+            # Limit the history size
+
+            if len(last_scores) > MAX_HISTORY_LENGTH:
+                last_scores.pop(0)
+                last_visited_times.pop(0)
+
+            self.user_words_collection.update_one(
+                {"_id": word_key,
+                 "user_id": user_id},
+                {"$set": {
+                    "last_scores": last_scores,
+                    "last_visited_times": last_visited_times
+                }}
+            )
+            print(f"Updated word ID '{word_key}' for user {user_id}.")
 
     def get_new_exercise(self,
                           user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
@@ -703,12 +797,6 @@ class GlobalContainer:
         Apply thumbs up or down to the exercise in the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
-
-        if not user:
-            print(f"User {user_id} not found in the database.")
-            return False
-        
         if thumbs_up:
             exercise_thumbs_up_or_down = self.exercise_thumbs_up_collection.find_one({"exercise_id": exercise_id})
         else:
@@ -782,14 +870,6 @@ class GlobalContainer:
         Add a word to the user's word list in the database.
         """
         
-        user = self.users_collection.find_one({"user_id": user_id})
-        
-        if not user:
-            print(f"User {user_id} not found in the database.")
-            return False
-        
-        # check if exists in user words already
-
         current_user_word = self.user_words_collection.find_one({"_id": word_key,
                                                             "user_id": user_id})
         if current_user_word:
