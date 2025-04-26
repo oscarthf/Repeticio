@@ -1,13 +1,15 @@
 {% load static %}
 
 {% extends 'base.html' %} 
-{% block title %}SETTINGS{% endblock %} 
-{% block content %} 
+{% block title %}Open Language App | Settings{% endblock %} 
+{% block content %}
 
+<!-- 
     <a href="{% url 'create_checkout_session' %}">
         <button>Subscribe Now</button>
     </a>
-    
+ -->
+
     <a href="{% url 'customer_portal' %}">
         <button>Manage Subscription</button>
     </a>
@@ -17,7 +19,6 @@
             <h4 class="text-center">Settings for {{ user.username }}</h4>
         </div>
     </div>
-
     
     <script src="{% static 'js/common.js' %}"></script>
     
