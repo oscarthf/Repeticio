@@ -10,11 +10,13 @@ from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
 
-from language_app_backend.util.db import get_global_container
-
-from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
-                                                 DEFAULT_RATELIMIT)
-
+try:
+    from language_app_backend.util.db import get_global_container
+    from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
+                                                    DEFAULT_RATELIMIT)
+except ImportError:
+    print("ImportError: language_app_backend not found. ")
+    
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def check_subscription_active(user_id) -> bool:
