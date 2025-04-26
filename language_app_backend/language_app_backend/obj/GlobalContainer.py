@@ -671,9 +671,44 @@ class GlobalContainer:
                                     was_correct)
         
         if was_correct:
+            self.increase_user_xp(user_id, 1)
+        
+        if was_correct:
             return True, "Correct answer."
         else:
             return False, "Wrong answer."
+        
+    def increase_user_xp(self,
+                            user_id,
+                            xp) -> bool:
+        
+        """
+        Increase the user's XP in the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False
+        
+        user_xp = user.get("xp", 0)
+        
+        if user_xp is None:
+            print(f"User {user_id} has no XP.")
+            user_xp = 0
+
+        user_xp += xp
+
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "xp": user_xp
+            }}
+        )
+        print(f"User {user_id} XP increased by {xp}. New XP: {user_xp}.")
+
+        return True
         
     def update_user_word_score(self,
                                 user_id,
