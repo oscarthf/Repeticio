@@ -145,7 +145,7 @@ USE_TZ = True
 
 STATICFILES_DIRS = [
     # BASE_DIR / "static",  # Add your global static folder here if it exists
-    '/app/server/static',
+    # '/app/server/static',
 ]
 
 # if not DEBUG:
