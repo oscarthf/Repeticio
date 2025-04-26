@@ -24,18 +24,14 @@ WORKDIR /app/language_app_backend
 # Install the language app backend package
 RUN python3 -m pip install .
 
-# Remove the other files which were copied into the container
-RUN rm -rf /app/language_app_backend && \
-    rm -rf /app/requirements.txt
-
 # Copy the server package into the container
-COPY server /app
+COPY server /app/server
 
 # Set the working directory to the server package
-WORKDIR /app
+WORKDIR /app/server
 
 # Run using startup.bash
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "language_app.wsgi:app"]
+CMD ["bash", "startup.bash"]
 
 # to build the image, run the following command in the terminal:
 # docker build -t language_app:latest .
