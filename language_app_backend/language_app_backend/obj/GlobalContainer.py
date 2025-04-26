@@ -1,5 +1,7 @@
 
 from typing import Optional, Tuple, Dict, Any
+import threading
+import time
 import datetime
 
 import uuid
@@ -17,7 +19,8 @@ from ..util.constants import (SUPPORTED_LANGUAGES,
                               MAX_NUMBER_OF_EXERCISES,
                               MIN_THUMB_VOLUME,
                               MAX_WORD_LENGTH,
-                              VOCABULARY_REVISION_ITERATIONS)
+                              VOCABULARY_REVISION_ITERATIONS,
+                              VOCABULARY_REVISION_INTERVAL)
 
 def next_word(word_keys, 
               word_scores, 
@@ -139,7 +142,8 @@ class GlobalContainer:
         "exercise_thumbs_up_collection",
         "exercise_thumbs_down_collection",
         "llm",
-        "last_time_revised_vocabulary"
+        "last_time_revised_vocabulary",
+        "background_thread",
     ]
     def __init__(self, 
                  db_client,
@@ -161,6 +165,16 @@ class GlobalContainer:
 
         # Create indexes on commonly queried fields
         self.create_indexes()
+        self.start_background_thread()
+
+    def start_background_thread(self) -> None:
+        """
+        Start the background thread to revise vocabulary periodically.
+        """
+        self.background_thread = threading.Thread(target=self.vocabulary_background_thread, daemon=True)
+        self.background_thread.start()
+
+        print("Background thread started.")
 
     def create_indexes(self):
 
@@ -274,11 +288,29 @@ class GlobalContainer:
                               language)
 
         self.users_collection.insert_one(new_user)
-
-        self.revise_vocabulary(language)
         
         print(f"User {user_id} created in the database.")
         return True
+    
+    def vocabulary_background_thread(self) -> None:
+
+        """
+        Background thread to revise vocabulary periodically.
+        """
+    
+        while True:
+
+            for language in SUPPORTED_LANGUAGES:
+                if language not in self.last_time_revised_vocabulary:
+                    self.last_time_revised_vocabulary[language] = 0
+
+                current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+                if current_time - self.last_time_revised_vocabulary[language] > VOCABULARY_REVISION_INTERVAL:  # 24 hours
+                    self.revise_vocabulary(language)
+                    self.last_time_revised_vocabulary[language] = current_time
+
+            time.sleep(60)
     
     def revise_vocabulary(self,
                             language) -> bool:
