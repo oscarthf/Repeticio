@@ -5,13 +5,13 @@ FROM python:3.10-slim
 COPY requirements.txt /app/requirements.txt
 
 # Update pip to the latest version
-RUN pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip
 
 # Set the working directory
 WORKDIR /app
 
 # Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the language app backend package into the container
 COPY language_app_backend /app/language_app_backend
@@ -20,7 +20,7 @@ COPY language_app_backend /app/language_app_backend
 WORKDIR /app/language_app_backend
 
 # Install the language app backend package
-RUN pip install .
+RUN python3 -m pip install .
 
 # Copy the server package into the container
 COPY server /app/server
