@@ -11,6 +11,7 @@ from pymongo import ASCENDING as PY_MONGO_ASCENDING
 from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
 from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
 from ..util.constants import (SUPPORTED_LANGUAGES,
+                              REAL_LANGUAGE_NAMES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
                               MAX_NUMBER_OF_EXERCISES,
@@ -136,6 +137,7 @@ class GlobalContainer:
         "exercise_thumbs_up_collection",
         "exercise_thumbs_down_collection",
         "llm",
+        "last_time_revised_vocabulary"
     ]
     def __init__(self, 
                  db_client,
@@ -153,11 +155,12 @@ class GlobalContainer:
         self.exercise_thumbs_down_collection = self.db["exercise_thumbs_down"]
 
         self.llm = llm
+        self.last_time_revised_vocabulary = {}
 
         # Create indexes on commonly queried fields
         self.create_indexes()
 
-        self.populate_initial_words()
+        # self.populate_initial_words("es")
 
     def create_indexes(self):
 
@@ -247,6 +250,15 @@ class GlobalContainer:
 
         return words
     
+    def get_languages(self) -> list:
+        """
+        Get the list of supported languages.
+        """
+
+        languages = [f"{key}_{value}" for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
+
+        return languages
+    
     def create_user(self, 
                     user_id,
                     language) -> bool:
@@ -254,8 +266,12 @@ class GlobalContainer:
         Create a user in the database
         """
 
+        if not language in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{language}' for user {user_id}.")
+            return False
+
         new_user = empty_user(user_id, 
-                                language)
+                              language)
 
         self.users_collection.insert_one(new_user)
         

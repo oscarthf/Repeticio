@@ -24,16 +24,36 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.id
+    # check if language is set
+    data = request.GET
+    if not data:
+        return redirect('select_language')
+    language = data.get("language")
+    if not language:
+        return redirect('select_language')
+    
     global_container = get_global_container()
-    global_container.create_user_if_not_exists(user_id)
+    success = global_container.create_user(user_id,
+                                           language)
 
-    # user_object = global_container.get_user_object(user_id)
+    if not success:
+        return redirect('select_language')
+    return render(request, 'home.html')
 
-    # if user_object is None:
-    #     return JsonResponse({"error": "Failed to get user object"}, status=500)
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def select_language(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.id
+    global_container = get_global_container()
+    languages = global_container.get_languages()
 
-    return render(request, 'home.html',
-                  {"user_id": user_id})
+    if not languages:
+        return JsonResponse({"error": "Failed to get languages"}, status=500)
+    
+    return render(request, 'select_language.html',
+                  {"languages": languages})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -41,8 +61,7 @@ def settings(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.id
-    return render(request, "settings.html", 
-                  {"user_id": user_id})
+    return render(request, "settings.html")
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

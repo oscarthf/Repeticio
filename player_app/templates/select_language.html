@@ -1,7 +1,7 @@
 {% load static %} 
 
 {% extends 'base.html' %} 
-{% block title %}HOME{% endblock %} 
+{% block title %}SELECT LANGUAGE{% endblock %} 
 {% block content %} 
 
 
@@ -18,10 +18,15 @@
         
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.id }}";
+        let languages = [
+            {% for language in languages %}
+                "{{ language }}",
+            {% endfor %}
+        ];
 
     </script>
 
-    <script src="{% static 'js/player.js' %}"></script>
+    <script src="{% static 'js/select_language.js' %}"></script>
 
 
 {% endblock %}
