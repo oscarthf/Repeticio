@@ -8,12 +8,13 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 """
 
 import os
-import sys
-
-# Add the /app/server folder to the sys.path to ensure correct imports
-sys.path.append('/app/server')
 
 from django.core.wsgi import get_wsgi_application
+
+cwd = os.getcwd()
+print(f"Current working directory: {cwd}")
+list_of_files = os.listdir(cwd)
+print(f"List of files in the current directory: {list_of_files}")
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'language_app.settings')
 

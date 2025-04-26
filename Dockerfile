@@ -7,13 +7,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3-setupto
 COPY requirements.txt /app/requirements.txt
 
 # Update pip to the latest version
-RUN python3 -m pip install --upgrade pip
+RUN python -m pip install --upgrade pip
 
 # Set the working directory
 WORKDIR /app
 
 # Install the dependencies
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the language app backend package into the container
 COPY language_app_backend /app/language_app_backend
@@ -22,7 +22,7 @@ COPY language_app_backend /app/language_app_backend
 WORKDIR /app/language_app_backend
 
 # Install the language app backend package
-RUN python3 -m pip install .
+RUN python -m pip install .
 
 # Copy the server package into the container
 COPY server /app/server
