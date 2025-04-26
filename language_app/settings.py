@@ -20,6 +20,8 @@ LOGIN_URL = '/player/login/'
 LOGIN_REDIRECT_URL = '/player/'
 LOGOUT_REDIRECT_URL = '/'
 
+OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -27,7 +29,7 @@ LOGOUT_REDIRECT_URL = '/'
 SECRET_KEY = 'django-insecure-6d278w=0++-%woo0ei(o0i1uc5&d(k8y83&q-0sloct2ub9yvp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
