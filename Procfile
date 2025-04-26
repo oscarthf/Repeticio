@@ -1,1 +1,1 @@
-web: gunicorn --worker-tmp-dir /dev/shm --config gunicorn_config.py server.language_app.wsgi:app
+web: PYTHONPATH=/app gunicorn --worker-tmp-dir /dev/shm --config gunicorn_config.py server.language_app.wsgi:app
