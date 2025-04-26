@@ -13,7 +13,8 @@ from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
 from ..util.constants import (SUPPORTED_LANGUAGES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
-                              MAX_NUMBER_OF_EXERCISES)
+                              MAX_NUMBER_OF_EXERCISES,
+                              MIN_THUMB_VOLUME)
 
 def next_word(word_keys, 
               word_scores, 
@@ -488,7 +489,7 @@ class GlobalContainer:
 
         else:
 
-            exercise_list = self.refine_exercise_list(exercise_list)
+            exercise_list = self.revise_exercise_list(exercise_list)
 
         exercise = np.random.choice(exercise_list)
         print(f"Excersize found for key '{exercise_key}': {exercise}.")
@@ -540,10 +541,37 @@ class GlobalContainer:
 
         return exercise_list
     
-    def refine_exercise_list(self,
+    def revise_exercise_list(self,
                             exercise_list) -> list:
         
-        ### dont do often, check if one exercise should be removed
+        thumbs_up_values = []
+        thumbs_down_values = []
+        thumb_volumes = []
+        thumb_averages = []
+        for exercise in exercise_list:
+            exercise_id = exercise["exercise_id"]
+            thumbs_up = self.get_exercise_thumbs_up_or_down(exercise_id, True)
+            thumbs_down = self.get_exercise_thumbs_up_or_down(exercise_id, False)
+            thumbs_up_values.append(thumbs_up)
+            thumbs_down_values.append(thumbs_down)
+            thumb_volume = thumbs_up + thumbs_down
+            thumb_volumes.append(thumb_volume)
+
+            if thumb_volume < MIN_THUMB_VOLUME:
+                thumb_averages.append(1)
+            else:
+                thumb_averages.append(thumbs_up / thumb_volume)
+
+        worst_exercise_index = np.argmin(thumb_averages)
+        worst_exercise_average = thumb_averages[worst_exercise_index]
+
+        if worst_exercise_average > 0.5:
+            print(f"All exercises are good, no need to revise.")
+            return exercise_list
+        
+        # remove the worst exercise from the list
+        worst_exercise = exercise_list.pop(worst_exercise_index)
+        print(f"Removing worst exercise: {worst_exercise}.")
         
         return exercise_list
         
