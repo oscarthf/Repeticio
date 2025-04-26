@@ -39,6 +39,9 @@ def check_subscription_active(user_id) -> bool:
 
 def check_subscription_pipeline(global_container, user_id) -> bool:
 
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return True
+
     current_time = datetime.datetime.now(datetime.timezone.utc)
     
     check_subscription_interval = datetime.timedelta(seconds=CHECK_SUBSCRIPTION_INTERVAL)
