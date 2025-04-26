@@ -128,9 +128,16 @@ def home(request):
     global_container = get_global_container()
     success = global_container.create_user(user_id,
                                            language)
-
+    
     if not success:
         return redirect('select_language')
+    
+    ######################
+
+    check_subscription_pipeline(global_container, user_id)
+
+    ######################
+
     return render(request, 'home.html')
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
@@ -156,15 +163,7 @@ def settings(request):
     user_id = request.user.email
     return render(request, "settings.html")
 
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
-@login_required
-def get_new_exercise(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "User not authenticated"}, status=401)
-    user_id = request.user.email
-    global_container = get_global_container()
-
-    ######################
+def check_subscription_pipeline(global_container, user_id):
 
     current_time = datetime.datetime.now(datetime.timezone.utc)
     
@@ -178,6 +177,18 @@ def get_new_exercise(request):
         subscription_active = check_subscription_active(user_id)
         global_container.set_user_subscription(user_id, subscription_active)
         global_container.set_last_time_checked_subscription(user_id, current_time)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def get_new_exercise(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+    user_id = request.user.email
+    global_container = get_global_container()
+
+    ######################
+
+    check_subscription_pipeline(global_container, user_id)
 
     ######################
 
@@ -196,6 +207,13 @@ def get_user_object(request):
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
     global_container = get_global_container()
+    
+    ######################
+
+    check_subscription_pipeline(global_container, user_id)
+
+    ######################
+    
     user_object = global_container.get_user_object(user_id)
 
     if user_object is None:
@@ -210,6 +228,13 @@ def submit_answer(request):
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
     global_container = get_global_container()
+    
+    ######################
+
+    check_subscription_pipeline(global_container, user_id)
+
+    ######################
+
     data = request.POST
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
@@ -236,6 +261,13 @@ def get_user_words(request):
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
     global_container = get_global_container()
+    
+    ######################
+
+    check_subscription_pipeline(global_container, user_id)
+
+    ######################
+    
     data = request.GET
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
