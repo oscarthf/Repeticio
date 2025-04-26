@@ -39,7 +39,7 @@ def check_subscription_active(user_id) -> bool:
 
 def check_subscription_pipeline(global_container, user_id) -> bool:
 
-    if DO_NOT_CHECK_SUBSCRIPTION:
+    if settings.DO_NOT_CHECK_SUBSCRIPTION:
         return True
 
     current_time = datetime.datetime.now(datetime.timezone.utc)
