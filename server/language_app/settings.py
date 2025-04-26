@@ -16,8 +16,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LOGIN_URL = '/player/login/'
-LOGIN_REDIRECT_URL = '/player/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]

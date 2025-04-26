@@ -16,7 +16,7 @@ try:
                                                     DEFAULT_RATELIMIT)
 except ImportError:
     print("ImportError: language_app_backend not found. ")
-    
+
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def check_subscription_active(user_id) -> bool:
@@ -79,8 +79,8 @@ def create_checkout_session(request):
             'price': settings.STRIPE_PRICE_ID,  # We'll set this in a minute
             'quantity': 1,
         }],
-        success_url=f'{settings.FRONTEND_URL}/player/settings?session_id={{CHECKOUT_SESSION_ID}}',
-        cancel_url=f'{settings.FRONTEND_URL}/player/settings',
+        success_url=f'{settings.FRONTEND_URL}/settings?session_id={{CHECKOUT_SESSION_ID}}',
+        cancel_url=f'{settings.FRONTEND_URL}/settings',
         customer_email=request.user.email,  # Important: use user's email from Google login
     )
     return redirect(session.url, code=303)
@@ -132,7 +132,7 @@ def customer_portal(request):
 
     session = stripe.billing_portal.Session.create(
         customer=customer.id,
-        return_url=f'{settings.FRONTEND_URL}/player/settings',
+        return_url=f'{settings.FRONTEND_URL}/settings',
     )
     return redirect(session.url)
 

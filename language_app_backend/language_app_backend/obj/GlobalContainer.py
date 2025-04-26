@@ -362,7 +362,9 @@ class GlobalContainer:
         self.users_collection.insert_one(new_user)
         
         print(f"User {user_id} created in the database.")
+
         return True
+    
     def vocabulary_background_function_inner(self):
         """
         Inner function to revise vocabulary periodically.
@@ -400,7 +402,7 @@ class GlobalContainer:
         """
 
         while True:
-            
+
             # ...
 
             time.sleep(60 * 60)  # Run every hour
