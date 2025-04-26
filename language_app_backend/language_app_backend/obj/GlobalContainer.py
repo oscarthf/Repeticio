@@ -187,7 +187,29 @@ class GlobalContainer:
             }}
         )
 
+    def get_user_subscription(self, user_id) -> bool:
+        """
+        Get the user's subscription status from the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False
+
+        subscription_status = user.get("subscription_status", False)
+        
+        if not isinstance(subscription_status, bool):
+            print(f"Invalid subscription status for user {user_id}.")
+            return False
+        
+        return subscription_status
+
     def set_user_subscription(self, user_id, is_active) -> None:
+        """
+        Set the user's subscription status in the database.
+        """
+
         self.users_collection.update_one(
             {"user_id": user_id},
             {"$set": {
@@ -308,9 +330,9 @@ class GlobalContainer:
 
         return languages
     
-    def create_user(self, 
-                    user_id,
-                    language) -> bool:
+    def create_user_if_needed(self, 
+                              user_id,
+                              language) -> bool:
         """
         Create a user in the database
         """
@@ -318,6 +340,12 @@ class GlobalContainer:
         if not language in SUPPORTED_LANGUAGES:
             print(f"Unsupported language '{language}' for user {user_id}.")
             return False
+        
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if user:
+            print(f"User {user_id} already exists in the database.")
+            return True
 
         new_user = empty_user(user_id, 
                               language)

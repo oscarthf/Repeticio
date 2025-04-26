@@ -113,6 +113,33 @@ def customer_portal(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
+def settings(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    # check if language is set
+    data = request.GET
+    if not data:
+        return redirect('select_language')
+    language = data.get("language")
+    if not language:
+        return redirect('select_language')
+    
+    global_container = get_global_container()
+
+    ######################
+
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return redirect('create_checkout_session')
+
+    ######################
+
+    return render(request, "settings.html")
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
 def home(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -126,15 +153,21 @@ def home(request):
         return redirect('select_language')
     
     global_container = get_global_container()
-    success = global_container.create_user(user_id,
-                                           language)
+    
+    ######################
+
+    success = global_container.create_user_if_needed(user_id,
+                                                     language)
     
     if not success:
         return redirect('select_language')
     
     ######################
 
-    check_subscription_pipeline(global_container, user_id)
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return redirect('create_checkout_session')
 
     ######################
 
@@ -155,15 +188,7 @@ def select_language(request):
     return render(request, 'select_language.html',
                   {"languages": languages})
 
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
-@login_required
-def settings(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-    user_id = request.user.email
-    return render(request, "settings.html")
-
-def check_subscription_pipeline(global_container, user_id):
+def check_subscription_pipeline(global_container, user_id) -> bool:
 
     current_time = datetime.datetime.now(datetime.timezone.utc)
     
@@ -177,7 +202,11 @@ def check_subscription_pipeline(global_container, user_id):
         subscription_active = check_subscription_active(user_id)
         global_container.set_user_subscription(user_id, subscription_active)
         global_container.set_last_time_checked_subscription(user_id, current_time)
+    else:
+        subscription_active = global_container.get_user_subscription(user_id)
 
+    return subscription_active
+    
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def get_new_exercise(request):
@@ -188,7 +217,10 @@ def get_new_exercise(request):
 
     ######################
 
-    check_subscription_pipeline(global_container, user_id)
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
 
     ######################
 
@@ -210,8 +242,11 @@ def get_user_object(request):
     
     ######################
 
-    check_subscription_pipeline(global_container, user_id)
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
 
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
+    
     ######################
     
     user_object = global_container.get_user_object(user_id)
@@ -231,7 +266,10 @@ def submit_answer(request):
     
     ######################
 
-    check_subscription_pipeline(global_container, user_id)
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
 
     ######################
 
@@ -264,7 +302,10 @@ def get_user_words(request):
     
     ######################
 
-    check_subscription_pipeline(global_container, user_id)
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
 
     ######################
     
