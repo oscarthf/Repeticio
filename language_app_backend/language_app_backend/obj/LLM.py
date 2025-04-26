@@ -22,6 +22,23 @@ def get_language_string(language: str) -> str:
 
     return language_str
 
+def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
+
+    """
+    Remove duplicate words from the JSON data.
+    """
+    
+    words_so_far = set()
+
+    for level in json_data:
+        for word in json_data[level]:
+            if word in words_so_far:
+                json_data[level].remove(word)
+            else:
+                words_so_far.add(word)
+
+    return json_data
+
 def validate_exercise(exercise: Dict[str, Any], word_values: list) -> bool:
 
     # {
@@ -362,6 +379,8 @@ class LLM:
                 if not isinstance(word, str):
                     print(f"Invalid word format in level {level}: {word}")
                     return None
+                
+        json_data = remove_duplicate_words(json_data)
 
         return json_data
 
