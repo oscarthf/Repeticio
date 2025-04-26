@@ -27,3 +27,8 @@ WORKDIR /app/server
 
 # Run using startup.bash
 CMD ["bash", "startup.bash"]
+
+# to build the image, run the following command in the terminal:
+# docker build -t language_app:latest .
+# to run the container, use the following command:
+# docker run -p 8000:8000 language_app:latest
