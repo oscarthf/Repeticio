@@ -1,0 +1,27 @@
+{% load static %} 
+
+{% extends 'base.html' %} 
+{% block title %}Open Language App{% endblock %} 
+{% block content %}
+
+    
+
+    <div class="row">
+        <div class="col-sm-12 mb-3">
+            <h4 class="text-center">Welcome {{ user.username }}</h4>
+        </div>
+    </div>
+
+    <script src="{% static 'js/common.js' %}"></script>
+    
+    <script>
+        
+        let user_name = "{{ user.username }}";
+        let user_id = "{{ user.email }}";
+
+    </script>
+
+    <script src="{% static 'js/player.js' %}"></script>
+
+
+{% endblock %}
