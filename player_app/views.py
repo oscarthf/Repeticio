@@ -15,6 +15,8 @@ from language_app_backend.util.db import get_global_container
 from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
                                                  DEFAULT_RATELIMIT)
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 def check_subscription_active(customer_id):
     
     subscriptions = stripe.Subscription.list(customer=customer_id, status='all')
@@ -24,17 +26,30 @@ def check_subscription_active(customer_id):
             return True  # They have an active subscription
     return False  # No active subscription
 
+def check_subscription_pipeline(global_container, user_id) -> bool:
+
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    
+    check_subscription_interval = datetime.timedelta(seconds=CHECK_SUBSCRIPTION_INTERVAL)
+
+    last_time_checked_subscription = global_container.get_last_time_checked_subscription(user_id)
+    if last_time_checked_subscription is None:
+        last_time_checked_subscription = current_time - 2 * check_subscription_interval
+    
+    if (current_time - last_time_checked_subscription) > check_subscription_interval:
+        subscription_active = check_subscription_active(user_id)
+        global_container.set_user_subscription(user_id, subscription_active)
+        global_container.set_last_time_checked_subscription(user_id, current_time)
+    else:
+        subscription_active = global_container.get_user_subscription(user_id)
+
+    return subscription_active
+    
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')  # or your desired post-login view
-
     return render(request, 'login.html')
-
-
-# Set your stripe secret key
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -55,7 +70,6 @@ def create_checkout_session(request):
         customer_email=request.user.email,  # Important: use user's email from Google login
     )
     return redirect(session.url, code=303)
-
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @csrf_exempt
@@ -92,7 +106,6 @@ def stripe_webhook(request):
             global_container.set_user_subscription(customer_email, False)
 
     return HttpResponse(status=200)
-
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -188,25 +201,6 @@ def select_language(request):
     return render(request, 'select_language.html',
                   {"languages": languages})
 
-def check_subscription_pipeline(global_container, user_id) -> bool:
-
-    current_time = datetime.datetime.now(datetime.timezone.utc)
-    
-    check_subscription_interval = datetime.timedelta(seconds=CHECK_SUBSCRIPTION_INTERVAL)
-
-    last_time_checked_subscription = global_container.get_last_time_checked_subscription(user_id)
-    if last_time_checked_subscription is None:
-        last_time_checked_subscription = current_time - 2 * check_subscription_interval
-    
-    if (current_time - last_time_checked_subscription) > check_subscription_interval:
-        subscription_active = check_subscription_active(user_id)
-        global_container.set_user_subscription(user_id, subscription_active)
-        global_container.set_last_time_checked_subscription(user_id, current_time)
-    else:
-        subscription_active = global_container.get_user_subscription(user_id)
-
-    return subscription_active
-    
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def get_new_exercise(request):
