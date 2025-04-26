@@ -319,6 +319,12 @@ class GlobalContainer:
                 print(f"Failed to get word level for word '{word_value}' in language '{language}'.")
                 continue
 
+            previous_level = word_doc["level"]
+
+            if revised_level == previous_level:
+                print(f"Word '{word_value}' already at level {revised_level} in language '{language}'.")
+                continue
+
             vocabulary[word_i]["level"] = revised_level
 
             word_key = word_doc["_id"]
