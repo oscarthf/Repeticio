@@ -144,12 +144,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Add your global static folder here if it exists
+    # BASE_DIR / "static",  # Add your global static folder here if it exists
+    '/app/server/static',
 ]
 
-if not DEBUG:
-    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
+# if not DEBUG:
+STATIC_ROOT = '/app/server/static'
 
 STATIC_URL = '/static/'
 
