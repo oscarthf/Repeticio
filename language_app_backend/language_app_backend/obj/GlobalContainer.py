@@ -12,7 +12,8 @@ from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
 from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
 from ..util.constants import (SUPPORTED_LANGUAGES,
                               NEXT_WORD_TEMPERATURE, 
-                              MAX_HISTORY_LENGTH)
+                              MAX_HISTORY_LENGTH,
+                              MAX_NUMBER_OF_EXERCISES)
 
 def next_word(word_keys, 
               word_scores, 
@@ -142,6 +143,8 @@ class GlobalContainer:
         self.user_words_collection = self.db["user_words"]
         self.users_collection = self.db["users"]
         self.exercises_collection = self.db["exercises"]
+        self.exercise_thumbs_up_collection = self.db["exercise_thumbs_up"]
+        self.exercise_thumbs_down_collection = self.db["exercise_thumbs_down"]
 
         self.llm = llm
 
@@ -471,34 +474,78 @@ class GlobalContainer:
         print(f"Excersize document found for key '{exercise_key}'.")
         exercise_list = exercise_doc.get("exercise_list", None)
 
-        if exercise_list is None or not len(exercise_list):
-            print(f"No exercise list found for key '{exercise_key}'.")
-            word_values = [self.words_collection.find_one({"_id": word_key}) for word_key in word_keys]
-            word_values = [word["word_value"] for word in word_values if word is not None]
-            if not len(word_values) == len(word_keys):
-                print(f"Not all word keys found in the database for key '{exercise_key}'.")
-                return None
-            
+        if exercise_list is None:
+            print(f"Exercise list not found for key '{exercise_key}'.")
             exercise_list = []
-            exercise = self.llm.create_exercise(word_values,
-                                                word_keys,
-                                                exercise_type,
-                                                current_language,
-                                                current_level)
-            exercise_list.append(exercise)
-            self.exercises_collection.update_one(
-                {"_id": exercise_key},
-                {"$set": {
-                    "exercise_list": exercise_list
-                }},
-                upsert=True
-            )
-            print(f"Created new exercise for key '{exercise_key}': {exercise}.")
+
+        if len(exercise_list) < MAX_NUMBER_OF_EXERCISES:
+            
+            exercise_list = self.add_to_exercise_list(exercise_key,
+                                                        word_keys,
+                                                        exercise_type,
+                                                        current_language,
+                                                        current_level)
+
         else:
-            exercise = np.random.choice(exercise_list)
-            print(f"Excersize found for key '{exercise_key}': {exercise}.")
+
+            exercise_list = self.refine_exercise_list(exercise_list)
+
+        exercise = np.random.choice(exercise_list)
+        print(f"Excersize found for key '{exercise_key}': {exercise}.")
 
         return exercise
+    
+    def add_to_exercise_list(self,
+                            exercise_key,
+                            word_keys,
+                            exercise_type,
+                            current_language,
+                            current_level) -> None:
+        
+        """
+        Add a new exercise to the exercise list in the database.
+        """
+                         
+        print(f"Needs to create new exercise for key '{exercise_key}'.")
+
+        word_values = [self.words_collection.find_one({"_id": word_key}) for word_key in word_keys]
+        word_values = [word["word_value"] for word in word_values if word is not None]
+        if not len(word_values) == len(word_keys):
+            print(f"Not all word keys found in the database for key '{exercise_key}'.")
+            return None
+        
+        exercise_list = []
+        exercise = self.llm.create_exercise(word_values,
+                                            exercise_type,
+                                            current_language,
+                                            current_level)
+        
+        if exercise is None:
+            print(f"Failed to create exercise for key '{exercise_key}'.")
+            return None
+        
+        exercise["word_keys"] = word_keys
+        exercise["exercise_id"] = str(uuid.uuid4())
+        exercise["created_at"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+        exercise_list.append(exercise)
+        self.exercises_collection.update_one(
+            {"_id": exercise_key},
+            {"$set": {
+                "exercise_list": exercise_list
+            }},
+            upsert=True
+        )
+        print(f"Created new exercise for key '{exercise_key}': {exercise}.")
+
+        return exercise_list
+    
+    def refine_exercise_list(self,
+                            exercise_list) -> list:
+        
+        ### dont do often, check if one exercise should be removed
+        
+        return exercise_list
         
     def get_new_exercise(self,
                           user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
@@ -559,6 +606,86 @@ class GlobalContainer:
         print(f"Generated new exercise for user {user_id}: {exercise}.")
 
         return exercise, True
+    
+    def apply_thumbs_up_or_down(self,
+                                 user_id,
+                                 exercise_id,
+                                 thumbs_up) -> bool:
+        
+        """
+        Apply thumbs up or down to the exercise in the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False
+        
+        if thumbs_up:
+            exercise_thumbs_up_or_down = self.exercise_thumbs_up_collection.find_one({"exercise_id": exercise_id})
+        else:
+            exercise_thumbs_up_or_down = self.exercise_thumbs_down_collection.find_one({"exercise_id": exercise_id})
+
+        if not exercise_thumbs_up_or_down:
+            print(f"Exercise thumbs up or down not found for exercise ID '{exercise_id}'.")
+            exercise_thumbs_up_or_down = {
+                "exercise_id": exercise_id,
+                "up_or_down_value": 0
+            }
+
+        up_or_down_value = exercise_thumbs_up_or_down.get("up_or_down_value", None)
+
+        if not up_or_down_value:
+            up_or_down_value = 0
+
+        up_or_down_value += 1
+
+        if thumbs_up:
+            self.exercise_thumbs_up_collection.update_one(
+                {"exercise_id": exercise_id},
+                {"$set": {
+                    "exercise_id": exercise_id,
+                    "up_or_down_value": up_or_down_value
+                }},
+                upsert=True
+            )
+        else:
+            self.exercise_thumbs_down_collection.update_one(
+                {"exercise_id": exercise_id},
+                {"$set": {
+                    "exercise_id": exercise_id,
+                    "up_or_down_value": up_or_down_value
+                }},
+                upsert=True
+            )
+
+        print(f"Applied thumbs {'up' if thumbs_up else 'down'} to exercise {exercise_id} for user {user_id}.")
+
+    def get_exercise_thumbs_up_or_down(self,
+                                        exercise_id,
+                                        thumbs_up) -> int:
+        
+        """
+        Get the thumbs up or down count for the exercise in the database.
+        """
+
+        if thumbs_up:
+            exercise_thumbs_up_or_down = self.exercise_thumbs_up_collection.find_one({"exercise_id": exercise_id})
+        else:
+            exercise_thumbs_up_or_down = self.exercise_thumbs_down_collection.find_one({"exercise_id": exercise_id})
+
+        if not exercise_thumbs_up_or_down:
+            print(f"Exercise {exercise_id} not found in the database.")
+            return 0
+        
+        up_or_down_value = exercise_thumbs_up_or_down.get("up_or_down_value", None)
+
+        if not up_or_down_value:
+            print(f"Exercise {exercise_id} has no thumbs up or down value.")
+            return 0
+            
+        return up_or_down_value
         
     def add_word_to_locked_words(self, 
                                  user_id, 

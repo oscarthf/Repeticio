@@ -1,4 +1,5 @@
 
+import datetime
 from typing import Dict, Any
 import json
 
@@ -130,7 +131,6 @@ class LLM:
 
     def create_exercise(self,
                         word_values,
-                        word_keys,
                         exercise_type,
                         language,
                         level) -> Dict[Any, Any]:
@@ -139,7 +139,6 @@ class LLM:
         """
 
         exercise = {
-            "word_keys": word_keys,
             "word_values": word_values,
             "exercise_type": exercise_type,
             "language": language,
@@ -198,7 +197,12 @@ class LLM:
             print("Invalid exercise format")
             return None
         
-        return json_data
+        exercise["initial_strings"] = json_data["initial_strings"]
+        exercise["middle_strings"] = json_data["middle_strings"]
+        exercise["final_strings"] = json_data["final_strings"]
+        exercise["criteria"] = json_data["criteria"]
+        
+        return exercise
     
     def revise_vocabulary(self,
                           language,
