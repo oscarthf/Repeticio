@@ -15,7 +15,8 @@ from ..util.constants import (SUPPORTED_LANGUAGES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
                               MAX_NUMBER_OF_EXERCISES,
-                              MIN_THUMB_VOLUME)
+                              MIN_THUMB_VOLUME,
+                              VOCABULARY_REVISION_ITERATIONS)
 
 def next_word(word_keys, 
               word_scores, 
@@ -160,8 +161,6 @@ class GlobalContainer:
         # Create indexes on commonly queried fields
         self.create_indexes()
 
-        # self.populate_initial_words("es")
-
     def create_indexes(self):
 
         """
@@ -274,10 +273,111 @@ class GlobalContainer:
                               language)
 
         self.users_collection.insert_one(new_user)
+
+        self.revise_vocabulary(language)
         
         print(f"User {user_id} created in the database.")
         return True
     
+    def revise_vocabulary(self,
+                            language) -> bool:
+        
+        """
+        Revise the vocabulary for the given language.
+        """
+
+        if language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{language}' for revising vocabulary.")
+            return False
+        
+        self.populate_initial_words(language)
+
+        vocabulary = self.words_collection.find({"language": language})
+
+        vocabulary = list(vocabulary)
+
+        if not len(vocabulary):
+            print(f"No vocabulary found for language '{language}'.")
+            return False
+        
+        ########################################################################
+
+        shuffled_word_indices = np.random.permutation(len(vocabulary))
+
+        selected_word_indices = shuffled_word_indices[:VOCABULARY_REVISION_ITERATIONS]
+
+        for word_i in selected_word_indices:
+            word_doc = vocabulary[word_i]
+
+            word_value = word_doc["word_value"]
+
+            revised_level = self.llm.get_word_level(word_value,
+                                                    language)
+
+            if revised_level is None:
+                print(f"Failed to get word level for word '{word_value}' in language '{language}'.")
+                continue
+
+            vocabulary[word_i]["level"] = revised_level
+
+            word_key = word_doc["_id"]
+
+            self.words_collection.update_one(
+                {"_id": word_key},
+                {"$set": {
+                    "level": revised_level
+                }}
+            )
+
+            print(f"Revised word '{word_value}' to level {revised_level} in language '{language}'.")
+
+        new_word_value = self.llm.get_new_word(language, vocabulary)
+
+        if new_word_value is None:
+            print(f"Failed to get new word for language '{language}'.")
+            return False
+        
+        if not isinstance(new_word_value, str):
+            print(f"New word value is not a string: {new_word_value}.")
+            return False
+        
+        if new_word_value == "":
+            print(f"New word value is empty.")
+            return False
+        
+        if " " in new_word_value:
+            print(f"New word value '{new_word_value}' contains spaces.")
+            return False
+        
+        if len(new_word_value) > 20:
+            print(f"New word value '{new_word_value}' is too long.")
+            return False
+        
+        if new_word_value in [word["word_value"] for word in vocabulary]:
+            print(f"New word value '{new_word_value}' already exists in the vocabulary.")
+            return False
+        
+        # create a new word document
+
+        level = self.llm.get_word_level(new_word_value,
+                                        language)
+        
+        if level is None:
+            print(f"Failed to get word level for new word '{new_word_value}' in language '{language}'.")
+            return False
+
+        word_key = str(uuid.uuid4())
+        word_doc = empty_word_document(word_key,
+                                        new_word_value,
+                                        language,
+                                        level)
+        
+        self.words_collection.insert_one(word_doc)
+
+        print(f"New word '{new_word_value}' added to the vocabulary in language '{language}'.")
+        
+        return True
+
     def get_user_object(self,
                         user_id) -> Optional[Dict[Any, Any]]:
         """

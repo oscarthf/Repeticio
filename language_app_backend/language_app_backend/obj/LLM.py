@@ -211,11 +211,12 @@ class LLM:
         
         return exercise
     
-    def revise_vocabulary(self,
-                          language,
-                          language_data) -> Dict[Any, Any]:
+    def get_word_level(self,
+                       word_value,
+                       language) -> Optional[int]:
+
         """
-        Revise the vocabulary for the given language.
+        Get the level of the word for the given language.
         """
 
         if not language in REAL_LANGUAGE_NAMES:
@@ -224,9 +225,29 @@ class LLM:
         
         language_str = get_language_string(language)
 
-        query_input = REVISE_VOCABULARY_PROMPT.replace("[TARGET LANGUAGE]", language_str)
+        query_input = f"Please estimate the CEFR level of the word '{word_value}' in {language_str}."
+        query_input += "\n\nPlease respond with only one integer value, 0-2, where 0 = A1, 1 = A2, 2 = B1."
+        query_input += "\n\nNo explanation is needed, just the number."
 
-        return language_data
+
+
+        response = self.client.responses.create(
+            model=OPENAI_MODEL_NAME,
+            input=query_input
+        )
+
+        print(response.output_text)
+
+        if not response.output_text.isdigit():
+            print("Invalid response format")
+            return None
+        
+        output_value = int(response.output_text)
+        if output_value < 0 or output_value > 2:
+            print(f"Invalid output value: {output_value}")
+            return None
+        
+        return output_value
 
     def get_initial_words(self,
                           language):
