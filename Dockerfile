@@ -32,7 +32,7 @@ RUN rm -rf /app/language_app_backend && \
 COPY server /app
 
 # Set the working directory to the server package
-WORKDIR /app/server
+WORKDIR /app
 
 # Run using startup.bash
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "language_app.wsgi:app"]
