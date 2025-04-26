@@ -2,8 +2,6 @@
 from typing import Dict, Any
 import json
 
-from openai import OpenAI
-
 from ..util.prompts import (
     MULTIPLE_CHOICE_EXERCISE_PROMPT,
     FILL_IN_THE_BLANK_EXERCISE_PROMPT,
@@ -12,7 +10,9 @@ from ..util.prompts import (
 )
 from ..util.constants import (
     REAL_LANGUAGE_NAMES,
+    OPENAI_MODEL_NAME,
 )
+from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:
 
@@ -32,7 +32,7 @@ class LLM:
         Initialize the LLM class.
         """
 
-        self.client = OpenAI()
+        self.client = get_inference_client()
 
     def create_exercise(self,
                         word_values,
@@ -107,7 +107,7 @@ class LLM:
         query_input = INITIAL_WORD_PROMPT.replace("[TARGET LANGUAGE]", language_str)
 
         response = self.client.responses.create(
-            model="gpt-4.1",
+            model=OPENAI_MODEL_NAME,
             input=query_input
         )
 

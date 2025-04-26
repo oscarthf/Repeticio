@@ -1,5 +1,8 @@
 NEXT_WORD_TEMPERATURE = 0.02
 MAX_HISTORY_LENGTH = 5
+
+OPENAI_MODEL_NAME = "gpt-4.1"
+
 SUPPORTED_LANGUAGES = [
     # "en",  # English
     "es",  # Spanish
