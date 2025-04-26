@@ -79,6 +79,8 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "user_id": user_id, 
         "xp": 0,
         "current_language": language,
+        "subscription_status": False,
+        "last_time_checked_subscription": 0,
         "languages": {
             "language": {
                 "current_level": 0,
@@ -175,6 +177,39 @@ class GlobalContainer:
         self.background_thread.start()
 
         print("Background thread started.")
+
+    def set_last_time_checked_subscription(self, user_id, current_time) -> None:
+        current_time_unix = int(current_time.timestamp())
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "last_time_checked_subscription": current_time_unix
+            }}
+        )
+
+    def set_user_subscription(self, user_id, is_active) -> None:
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "subscription_status": is_active
+            }}
+        )
+
+    def get_last_time_checked_subscription(self, user_id) -> int:
+        user = self.users_collection.find_one({"user_id": user_id})
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
+
+        last_time_checked_subscription_unix = user.get("last_time_checked_subscription", 0)
+        
+        if not isinstance(last_time_checked_subscription_unix, int):
+            print(f"Invalid last time checked subscription value for user {user_id}.")
+            return datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
+        
+        last_time_checked_subscription = datetime.datetime.fromtimestamp(last_time_checked_subscription_unix, tz=datetime.timezone.utc)
+
+        return last_time_checked_subscription
 
     def create_indexes(self):
 
@@ -728,7 +763,7 @@ class GlobalContainer:
         return exercise_list
     
     def revise_exercise_list(self,
-                            exercise_list) -> list:
+                             exercise_list) -> list:
         
         thumbs_up_values = []
         thumbs_down_values = []
@@ -932,7 +967,7 @@ class GlobalContainer:
         if not user:
             print(f"User {user_id} not found in the database.")
             return None, False
-        
+
         current_language = user.get("current_language", None)
         if current_language not in SUPPORTED_LANGUAGES:
             print(f"Unsupported language '{current_language}' for user {user_id}.")

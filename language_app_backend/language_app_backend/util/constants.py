@@ -8,6 +8,9 @@ MAX_WORD_LENGTH = 32
 
 OPENAI_MODEL_NAME = "gpt-4.1"
 
+CHECK_SUBSCRIPTION_INTERVAL = 
+DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
+
 SUPPORTED_LANGUAGES = [
     # "en",  # English
     "es",  # Spanish

@@ -15,7 +15,7 @@
     <script>
         
         let user_name = "{{ user.username }}";
-        let user_id = "{{ user.id }}";
+        let user_id = "{{ user.email }}";
         let languages = [
             {% for language in languages %}
                 "{{ language }}",
