@@ -17,8 +17,17 @@ from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL,
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-def check_subscription_active(customer_id):
+def check_subscription_active(user_id) -> bool:
+
+    # Find Stripe customer by email
+    customers = stripe.Customer.list(email=user_id).data
+    if not customers:
+        return False  # No customer found
     
+    customer = customers[0]
+
+    customer_id = customer.id
+
     subscriptions = stripe.Subscription.list(customer=customer_id, status='all')
 
     for sub in subscriptions.auto_paging_iter():
@@ -65,8 +74,8 @@ def create_checkout_session(request):
             'price': settings.STRIPE_PRICE_ID,  # We'll set this in a minute
             'quantity': 1,
         }],
-        success_url='https://yourdomain.com/player/settings?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url='https://yourdomain.com/player/settings',
+        success_url=f'{settings.FRONTEND_URL}/player/settings?session_id={{CHECKOUT_SESSION_ID}}',
+        cancel_url=f'{settings.FRONTEND_URL}/player/settings',
         customer_email=request.user.email,  # Important: use user's email from Google login
     )
     return redirect(session.url, code=303)
@@ -84,13 +93,12 @@ def stripe_webhook(request):
     except (ValueError, stripe.error.SignatureVerificationError):
         return HttpResponse(status=400)
 
-    # Handle different event types
+    global_container = get_global_container()
+
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session.get('customer_email')
 
-        # Activate subscription
-        global_container = get_global_container()
         global_container.set_user_subscription(customer_email, True)
 
     elif event['type'] == 'customer.subscription.deleted':
@@ -102,7 +110,6 @@ def stripe_webhook(request):
         customer_email = customer.email
 
         if customer_email:
-            global_container = get_global_container()
             global_container.set_user_subscription(customer_email, False)
 
     return HttpResponse(status=200)
@@ -120,7 +127,7 @@ def customer_portal(request):
 
     session = stripe.billing_portal.Session.create(
         customer=customer.id,
-        return_url='https://yourdomain.com/player/settings',
+        return_url=f'{settings.FRONTEND_URL}/player/settings',
     )
     return redirect(session.url)
 
