@@ -1,5 +1,5 @@
 # dockerfile for the language app
-FROM python:3.10-slim
+FROM python:3.10
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3-setuptools
 
