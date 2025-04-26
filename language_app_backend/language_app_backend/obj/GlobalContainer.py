@@ -8,9 +8,9 @@ import numpy as np
 
 from pymongo import ASCENDING as PY_MONGO_ASCENDING
 
-from ..util.constants import (EXERCISE_TYPES,
-                              NUMBER_OF_WORDS_PER_EXERCISE,
-                              SUPPORTED_LANGUAGES,
+from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
+from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
+from ..util.constants import (SUPPORTED_LANGUAGES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH)
 
@@ -523,13 +523,21 @@ class GlobalContainer:
             print(f"No current level found for user {user_id}.")
             return None, False
         
-        exercise_type = np.random.choice(EXERCISE_TYPES)
+        number_of_words_needed = 2
 
-        number_of_words_needed = NUMBER_OF_WORDS_PER_EXERCISE[exercise_type]
-
-        if number_of_words_needed > 1 and np.random.rand() < 0.5:
+        if np.random.rand() < 0.5:
             number_of_words_needed -= 1
 
+        if number_of_words_needed == 1:
+            exercise_index = np.random.choice(ONE_BLANK_EXERCISE_PROMPTS)
+            exercise_type = f"1_{exercise_index}"
+        elif number_of_words_needed == 2:
+            exercise_index = np.random.choice(TWO_BLANK_EXERCISE_PROMPTS)
+            exercise_type = f"2_{exercise_index}"
+        else:
+            print(f"Invalid number of words needed: {number_of_words_needed}.")
+            return None, False
+        
         word_keys = []
 
         for _ in range(number_of_words_needed):

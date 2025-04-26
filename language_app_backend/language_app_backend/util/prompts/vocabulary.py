@@ -1,122 +1,4 @@
 
-EXAMPLE_EXERCISES = {
-    "multiple_choice": {
-        0: {# A1
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "multiple_choice",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-        1: {# A2
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "multiple_choice",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-        2: {# B1
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "multiple_choice",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-    },
-    "fill_in_the_blank": {
-        0: {# A1
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "fill_in_the_blank",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-        1: {# A2
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "fill_in_the_blank",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-        2: {# B1
-                "word_keys": ["abc", "def"],
-                "word_values": ["estar", "listo"],
-                "exercise_type": "fill_in_the_blank",
-                "initial_strings": [
-
-                ],
-                "middle_strings": [
-
-                ],
-                "final_strings": [
-
-                ],
-                "criteria": [
-
-                ]
-            },
-    },
-
-}
-
-MULTIPLE_CHOICE_EXERCISE_PROMPT = """
-Create a multiple-choice exercise for [TARGET LANGUAGE] at [TARGET LEVEL] using the following words: [TARGET WORDS].
-
-"""
-
-FILL_IN_THE_BLANK_EXERCISE_PROMPT = """
-"""
-
 EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     "es": {
         0: [
@@ -159,7 +41,9 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
 }
 
 INITIAL_WORD_PROMPT = """
-Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] organized by CEFR levels A1 (0), A2 (1), and B1 (2). For each level, include exactly 100 words that are common and useful at that level.
+Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] 
+organized by CEFR levels A1 (0), A2 (1), and B1 (2). For each level, 
+include exactly 100 words that are common and useful at that level.
 Each list should include a balanced mix of:
 Common verbs (e.g. "to be", "to eat")
 Everyday nouns (e.g. "house", "water", "friend")
@@ -180,6 +64,8 @@ Copy code
 }
 Replace "xx" with the language code (e.g., "es" for Spanish, "fr" for French).
 Do not include English translations. Only list the words as strings in arrays.
+
+Ensure that the JSON is valid and properly formatted.
 """
 
 REVISE_VOCABULARY_PROMPT = """
