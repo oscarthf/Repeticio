@@ -1,17 +1,16 @@
 
-import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 import json
 
 from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
 from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
 from ..util.prompts.vocabulary import (
-    REVISE_VOCABULARY_PROMPT,
-    INITIAL_WORD_PROMPT
+    INITIAL_WORD_PROMPT,
 )
 from ..util.constants import (
     REAL_LANGUAGE_NAMES,
     OPENAI_MODEL_NAME,
+    MAX_WORD_LENGTH,
 )
 from ..util.inference import get_inference_client
 
@@ -210,6 +209,51 @@ class LLM:
         exercise["criteria"] = json_data["criteria"]
         
         return exercise
+    
+    def get_new_word(self,
+                     language,
+                     vocabulary_word_values) -> Optional[str]:
+        
+        """
+        Get a new word for the given language which is not already in the vocabulary.
+        """
+
+        if not language in REAL_LANGUAGE_NAMES:
+            print(f"Language '{language}' is not supported.")
+            return None
+        
+        language_str = get_language_string(language)
+
+        words_str = ", ".join(vocabulary_word_values)
+        query_input = f"Please suggest a new word in {language_str} that is not already in the vocabulary: {words_str}."
+        query_input += "\n\nPlease respond with only one word."
+        query_input += "\n\nNo explanation is needed, just the word."
+        
+
+
+        response = self.client.responses.create(
+            model=OPENAI_MODEL_NAME,
+            input=query_input
+        )
+
+        print(response.output_text)
+
+        if not isinstance(response.output_text, str):
+            print("Invalid response format")
+            return None
+        
+
+        output_value = response.output_text.strip()
+        if len(output_value) < 1 or len(output_value) > MAX_WORD_LENGTH:
+            print(f"Invalid output value: {output_value}")
+            return None
+        
+
+        if output_value in vocabulary_word_values:
+            print(f"Word '{output_value}' is already in the vocabulary.")
+            return None
+        
+        return output_value
     
     def get_word_level(self,
                        word_value,

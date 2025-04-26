@@ -16,6 +16,7 @@ from ..util.constants import (SUPPORTED_LANGUAGES,
                               MAX_HISTORY_LENGTH,
                               MAX_NUMBER_OF_EXERCISES,
                               MIN_THUMB_VOLUME,
+                              MAX_WORD_LENGTH,
                               VOCABULARY_REVISION_ITERATIONS)
 
 def next_word(word_keys, 
@@ -331,7 +332,9 @@ class GlobalContainer:
 
             print(f"Revised word '{word_value}' to level {revised_level} in language '{language}'.")
 
-        new_word_value = self.llm.get_new_word(language, vocabulary)
+        vocabulary_word_values = [word["word_value"] for word in vocabulary]
+
+        new_word_value = self.llm.get_new_word(language, vocabulary_word_values)
 
         if new_word_value is None:
             print(f"Failed to get new word for language '{language}'.")
@@ -349,7 +352,7 @@ class GlobalContainer:
             print(f"New word value '{new_word_value}' contains spaces.")
             return False
         
-        if len(new_word_value) > 20:
+        if len(new_word_value) > MAX_WORD_LENGTH:
             print(f"New word value '{new_word_value}' is too long.")
             return False
         

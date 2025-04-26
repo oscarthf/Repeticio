@@ -67,8 +67,3 @@ Do not include English translations. Only list the words as strings in arrays.
 
 Ensure that the JSON is valid and properly formatted.
 """
-
-REVISE_VOCABULARY_PROMPT = """
-Revise the vocabulary for [TARGET LANGUAGE] at [TARGET LEVEL].
-"""
-
