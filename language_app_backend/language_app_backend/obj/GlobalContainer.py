@@ -145,7 +145,8 @@ class GlobalContainer:
         "exercise_thumbs_down_collection",
         "llm",
         "last_time_revised_vocabulary",
-        "background_thread",
+        "vocabulary_background_thread",
+        "clean_up_background_thread",
     ]
     def __init__(self, 
                  db_client,
@@ -165,18 +166,26 @@ class GlobalContainer:
         self.llm = llm
         self.last_time_revised_vocabulary = {}
 
+        self.vocabulary_background_thread = None
+        self.clean_up_background_thread = None
+
         # Create indexes on commonly queried fields
         self.create_indexes()
-        self.start_background_thread()
+        self.start_background_threads()
 
-    def start_background_thread(self) -> None:
+    def start_background_threads(self) -> None:
         """
         Start the background thread to revise vocabulary periodically.
         """
-        self.background_thread = threading.Thread(target=self.vocabulary_background_thread, daemon=True)
-        self.background_thread.start()
+        self.vocabulary_background_thread = threading.Thread(target=self.vocabulary_background_function, daemon=True)
+        self.vocabulary_background_thread.start()
 
-        print("Background thread started.")
+        print("Vocabulary background thread started.")
+
+        self.clean_up_background_thread = threading.Thread(target=self.clean_up_background_function, daemon=True)
+        self.clean_up_background_thread.start()
+
+        print("Clean up background thread started.")
 
     def set_last_time_checked_subscription(self, user_id, current_time) -> None:
         current_time_unix = int(current_time.timestamp())
@@ -355,7 +364,7 @@ class GlobalContainer:
         print(f"User {user_id} created in the database.")
         return True
     
-    def vocabulary_background_thread(self) -> None:
+    def vocabulary_background_function(self) -> None:
 
         """
         Background thread to revise vocabulary periodically.
@@ -373,7 +382,22 @@ class GlobalContainer:
                     self.revise_vocabulary(language)
                     self.last_time_revised_vocabulary[language] = current_time
 
-            time.sleep(60)
+            time.sleep(60 * 60)  # Run every hour
+
+    def clean_up_background_function(self) -> None:
+
+        """
+        Background thread to clean up the database periodically.
+        """
+
+        while True:
+            # Clean up old exercises and user words
+            current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+            # ...
+
+            time.sleep(60 * 60)  # Run every hour
+            
     
     def revise_vocabulary(self,
                             language) -> bool:
