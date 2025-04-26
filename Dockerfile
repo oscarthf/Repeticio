@@ -31,7 +31,7 @@ COPY server /app/server
 WORKDIR /app/server
 
 # Run using startup.bash
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:language_app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "language_app.wsgi"]
 
 # to build the image, run the following command in the terminal:
 # docker build -t language_app:latest .

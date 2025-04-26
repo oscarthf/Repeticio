@@ -1,1 +1,1 @@
-web: gunicorn --worker-tmp-dir /dev/shm --config gunicorn_config.py wsgi:language_app
+web: gunicorn --worker-tmp-dir /dev/shm --config gunicorn_config.py language_app.wsgi
