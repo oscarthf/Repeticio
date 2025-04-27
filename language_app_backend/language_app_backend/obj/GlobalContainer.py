@@ -35,6 +35,8 @@ def next_word(word_keys,
     assert len(word_keys) > 0, "No words available to select from."
 
     # adjusted score = (1 - score) * (1 + time_since_last_visit)
+    print(f"word_last_visited_times: {word_last_visited_times}")
+    print(f"word_scores: {word_scores}")
 
     word_last_visited_times = [datetime.datetime.fromtimestamp(time, tz=datetime.timezone.utc) for time in word_last_visited_times]
     current_time = datetime.datetime.now(datetime.timezone.utc)
@@ -681,7 +683,12 @@ class GlobalContainer:
         # count the number of words that need work
         needs_work_count = 0
         for word in words:
-            if word["last_scores"][-1] < 0.5:
+            last_scores = word.get("last_scores", [])
+            if not len(last_scores):
+                print(f"Word ID '{word['_id']}' has no last scores.")
+                continue
+            average_score = sum(last_scores) / len(last_scores)
+            if average_score < 0.5:
                 needs_work_count += 1
 
         percentage_needs_work = needs_work_count / len(words) * 100
