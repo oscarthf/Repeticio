@@ -68,6 +68,12 @@ function get_created_exercise() {
                     get_created_exercise();
                 }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
             }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to fetch exercise. Status: " + xhr.status + ", Response: " + xhr.responseText);
+            // try again after 30 seconds
+            setTimeout(function() {
+                get_created_exercise();
+            }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
         }
     }
     xhr.send();
