@@ -70,16 +70,16 @@ def login_view(request):
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def create_checkout_session(request):
+    
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return redirect('settings')
+
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
 
-    if DO_NOT_CHECK_SUBSCRIPTION:
-        return redirect('settings')
-
-    # Create Stripe checkout session
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         mode='subscription',
