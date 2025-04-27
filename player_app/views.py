@@ -233,28 +233,36 @@ def select_language(request):
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def get_created_exercise(request):
+    print("extra debug 0")
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
+    print("extra debug 1")
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
+    print("extra debug 2")
     global_container = get_global_container()
 
     ######################
 
+    print("extra debug 3")
     is_subscribed = check_subscription_pipeline(global_container, user_id)
 
     if not is_subscribed:
         return JsonResponse({"error": "User not subscribed"}, status=403)
+    print("extra debug 4")
 
     ######################
+    print("extra debug 5")
 
     (exercise, 
      success) = global_container.get_created_exercise(user_id)
     
+    print("extra debug 6")
     if not success:
         return JsonResponse({"error": "Failed to get created exercise"}, status=500)
     
+    print("extra debug 7")
     if exercise is not None:
 
         print(f"Exercise: {exercise}")
