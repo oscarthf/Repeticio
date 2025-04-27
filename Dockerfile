@@ -15,6 +15,8 @@ RUN python -m pip install --upgrade pip
 # Install the dependencies (including language_app_backend using "-e ./language_app_backend")
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
+RUN python manage.py collectstatic --noinput
+
 # Run using startup.bash
 CMD ["bash", "startup.bash"]
 
