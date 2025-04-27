@@ -160,3 +160,5 @@ function submit_answer(index) {
     xhr.send(data);
     
 }
+
+init();
