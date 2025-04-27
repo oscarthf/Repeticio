@@ -255,12 +255,16 @@ def get_created_exercise(request):
     if not success:
         return JsonResponse({"error": "Failed to get created exercise"}, status=500)
     
-    if exercise is not None and "criteria" in exercise:
-        del exercise["criteria"] # remove the answer from the response
+    if exercise is not None:
+
+        print(f"Exercise: {exercise}")
+        if "criteria" in exercise:
+            del exercise["criteria"] # remove the answer from the response
             
         return JsonResponse({"success": True,
                             "exercise": exercise}, status=200)
     else:
+        print("No exercise created yet.")
         return JsonResponse({"success": True}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
