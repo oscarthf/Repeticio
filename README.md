@@ -33,7 +33,6 @@ OPEN_LANGUAGE_APP_SECRET_KEY=<OPEN_LANGUAGE_APP_SECRET_KEY>
 4. Set app level env vars (from .env is convenient), not instance level.
 5. Build for first time.
 6. Set domain name (openlanguageapp.xyz in my case).
-7. Make sure the gunicorn run command is set for both instances (go to Settings, Run Command)
 ```
 
 ## To create Stripe Webhook (for subscription payments):
