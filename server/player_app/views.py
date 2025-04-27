@@ -281,7 +281,8 @@ def get_user_object(request):
     if user_object is None:
         return JsonResponse({"error": "Failed to get user object"}, status=500)
     
-    return JsonResponse(user_object, status=200)
+    return JsonResponse({"success": True,
+                         "exercise": user_object}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -319,7 +320,8 @@ def submit_answer(request):
     if not success:
         return JsonResponse({"error": message}, status=500)
     
-    return JsonResponse({"message": message}, status=200)
+    return JsonResponse({"success": True,
+                         "message": message}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
