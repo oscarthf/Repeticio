@@ -857,11 +857,7 @@ class GlobalContainer:
 
         self.exercises_by_id_collection.update_one(
             {"exercise_id": exercise["exercise_id"]},
-            {"$set": {
-                "exercise_id": exercise["exercise_id"],
-                "created_at": exercise["created_at"],
-                "exercise_key": exercise_key,
-            }},
+            {"$set": exercise},
             upsert=True
         )
 
