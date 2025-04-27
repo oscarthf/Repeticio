@@ -211,6 +211,8 @@ class GlobalContainer:
         self.vocabulary_background_thread.join()
         print("Joining clean up background thread...")
         self.clean_up_background_thread.join()
+        print("Joining update server heartbeat thread...")
+        self.update_server_heartbeat_thread.join()
         print("Threads stopped.")
 
     def check_if_is_main_server(self) -> bool:
