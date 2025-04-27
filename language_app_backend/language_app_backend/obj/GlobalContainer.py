@@ -1487,6 +1487,8 @@ class GlobalContainer:
 
         print(f"Applied thumbs {'up' if thumbs_up else 'down'} to exercise {exercise_id} for user {user_id}.")
 
+        return True
+
     def get_exercise_thumbs_up_or_down(self,
                                         exercise_id,
                                         thumbs_up) -> int:
