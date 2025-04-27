@@ -1230,9 +1230,10 @@ class GlobalContainer:
 
         print(f"Unlock word response: {unlock_word_response}.")
         
-        # Get the words list from the user document
-        # words = user.get("words", [])
-        words = user.get("languages", {}).get(current_language, {}).get("words", None)
+        words = self.get_user_words(user_id,
+                                    current_language,
+                                    False)
+        
         if words is None:
             print(f"No words found for user {user_id}.")
             return None, False
