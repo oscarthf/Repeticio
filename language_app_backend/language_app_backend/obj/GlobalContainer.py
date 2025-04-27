@@ -38,7 +38,8 @@ def next_word(word_keys,
     print(f"word_last_visited_times: {word_last_visited_times}")
     print(f"word_scores: {word_scores}")
 
-    word_last_visited_times = [datetime.datetime.fromtimestamp(time, tz=datetime.timezone.utc) for time in word_last_visited_times]
+    word_last_visited_times = [datetime.datetime.fromtimestamp(times[-1], tz=datetime.timezone.utc) if len(times) > 0 else datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
+                               for times in word_last_visited_times ]
     current_time = datetime.datetime.now(datetime.timezone.utc)
 
     oldest_time = min(word_last_visited_times) if len(word_last_visited_times) else current_time
@@ -53,7 +54,10 @@ def next_word(word_keys,
     word_last_visited_times = np.array(word_last_visited_times) / 3600
     word_last_visited_times = word_last_visited_times / time_since_oldest_visit
 
+    word_scores = [scores[-1] if len(scores) > 0 else 0 for scores in word_scores]
+
     scores = np.array(word_scores)
+    # average along 1st axis
 
     adjusted_scores = (1 - scores) * (1 + word_last_visited_times) - 1
 
