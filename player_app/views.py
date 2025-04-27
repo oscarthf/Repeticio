@@ -364,7 +364,7 @@ def submit_answer(request):
 
     ######################
 
-    data = request.POST
+    data = request.GET
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
 

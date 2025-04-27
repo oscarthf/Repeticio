@@ -16,7 +16,6 @@ function Globals() {
     this.current_exercise_results = null;
     this.last_exercise = null;
     this.last_exercise_id = null;
-    this.csrftoken = null;
 }
 
 GLOBALS = new Globals();
@@ -198,27 +197,18 @@ function submit_answer(index) {
     }
 
     console.log("Answer submitted for exercise " + index);
-    var url = submit_answer_url;
+    var url = submit_answer_url + "?answer=" + index + "&exercise_id=" + GLOBALS.current_exercise_id;
     var xhr = new XMLHttpRequest();
-    var data = JSON.stringify({"answer": index,
-                                "exercise_id": GLOBALS.current_exercise_id});
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    if (GLOBALS.csrftoken != null) {
-        xhr.setRequestHeader("X-CSRFToken", GLOBALS.csrftoken);
-    }
+    xhr.open("GET", url, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
-                // Handle success
                 console.log("Answer submitted successfully:", response.message);
-                GLOBALS.current_exercise_results = response.message;
-                GLOBALS.last_exercise = GLOBALS.current_exercise;
-                GLOBALS.last_exercise_id = GLOBALS.current_exercise_id;
-                GLOBALS.current_exercise = null; // Reset current exercise after submission
-                GLOBALS.current_exercise_id = null; // Reset current exercise ID after submission
-                render_current_exercise(); // Optionally re-render the player
+                // Update the current exercise results
+                GLOBALS.current_exercise_results = response.results;
+                // Optionally, you can render the results or update the UI
+                render_current_exercise();
             } else {
                 console.error("Error submitting answer: " + response.error);
             }
@@ -226,26 +216,7 @@ function submit_answer(index) {
             console.error("Failed to submit answer. Status: " + xhr.status + ", Response: " + xhr.responseText);
         }
     };
-    xhr.send(data);
-    
+    xhr.send();
 }
 
 init();
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-GLOBALS.csrftoken = getCookie("csrftoken");
