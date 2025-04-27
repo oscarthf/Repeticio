@@ -56,7 +56,7 @@ function get_created_exercise() {
                     // try again after 30 seconds
                     setTimeout(function() {
                         get_created_exercise();
-                    }, UPDATE_INTERVAL); // 30 seconds
+                    }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
                 } else {
                     set_new_exercise(response.exercise);
                     console.log("Exercise fetched successfully");
@@ -66,7 +66,7 @@ function get_created_exercise() {
                 // try again after 30 seconds
                 setTimeout(function() {
                     get_created_exercise();
-                }, UPDATE_INTERVAL); // 30 seconds
+                }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
             }
         }
     }
@@ -96,7 +96,7 @@ function main_action() {
                     // set timeout for 30 seconds
                     setTimeout(function() {
                         get_created_exercise();
-                    }, UPDATE_INTERVAL); // 30 seconds
+                    }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
                 } else {
                     console.error("Error fetching new exercise: " + response.error);
                 }
