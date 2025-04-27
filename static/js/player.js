@@ -106,6 +106,8 @@ function main_action() {
                 } else {
                     console.error("Error fetching new exercise: " + response.error);
                 }
+            } else if (xhr.readyState == 4) {
+                console.error("Failed to create new exercise. Status: " + xhr.status + ", Response: " + xhr.responseText);
             }
         };
         xhr.send();
@@ -216,6 +218,8 @@ function submit_answer(index) {
             } else {
                 console.error("Error submitting answer: " + response.error);
             }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to submit answer. Status: " + xhr.status + ", Response: " + xhr.responseText);
         }
     };
     xhr.send(data);
