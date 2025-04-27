@@ -344,7 +344,7 @@ class GlobalContainer:
 
         return languages
     
-    def get_user_languages(self,
+    def get_user_language(self,
                             user_id) -> Optional[str]:
         
         """
