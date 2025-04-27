@@ -439,7 +439,7 @@ class GlobalContainer:
 
             # time.sleep(60 * 60)  # Run every hour
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
-            while datetime.datetime.now(datetime.timezone.utc) - start_waiting_time < (60 * 60):
+            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
                 if self.is_running:
                     time.sleep(1)
 
@@ -455,7 +455,7 @@ class GlobalContainer:
 
             # time.sleep(60 * 60)  # Run every hour
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
-            while datetime.datetime.now(datetime.timezone.utc) - start_waiting_time < (60 * 60):
+            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
                 if self.is_running:
                     time.sleep(1)
             
