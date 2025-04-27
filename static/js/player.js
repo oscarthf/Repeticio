@@ -1,6 +1,7 @@
 
 // let create_new_exercise_url = "{% url 'create_new_exercise' %}";
 // let get_created_exercise_url = "{% url 'get_created_exercise' %}";
+// let apply_thumbs_up_url = "{% url 'apply_thumbs_up_or_down' %}";
 // let submit_answer_url = "{% url 'submit_answer' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
