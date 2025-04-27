@@ -330,18 +330,6 @@ class LLM:
             input=query_input
         )
 
-        
-        # ALTERNATIVE EXAMPLE
-        # completion = client.chat.completions.create(
-        # model="gpt-4o-mini",
-        # store=True,
-        # messages=[
-        #     {"role": "user", "content": "write a haiku about ai"}
-        # ]
-        # )
-
-        # print(completion.choices[0].message);
-
         print(response.output_text)
 
         if not "{" in response.output_text or not "}" in response.output_text:

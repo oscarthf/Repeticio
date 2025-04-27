@@ -301,6 +301,7 @@ class GlobalContainer:
             for word_value in word_values:
                 word_key = str(uuid.uuid4())
                 word_value = word_value.replace(" ", "_")
+                level = int(level)
                 word_doc = empty_word_document(word_key,
                                                 word_value,
                                                 language,
@@ -639,7 +640,8 @@ class GlobalContainer:
                 return 4
             
             # add next set of words to locked words
-            this_level_words = self.get_words_for_level(current_language, current_level)
+            this_level_words = self.get_words_for_level(current_language, 
+                                                        current_level)
 
             if not this_level_words or not len(this_level_words):
                 print(f"No words found for level {current_level} in language '{current_language}'.")
