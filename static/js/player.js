@@ -46,6 +46,7 @@ function get_created_exercise() {
     var url = get_created_exercise_url;
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
+    xhr.withCredentials = true;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
@@ -88,6 +89,7 @@ function main_action() {
         var url = create_new_exercise_url;
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
+        xhr.withCredentials = true;
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 var response = JSON.parse(xhr.responseText);
@@ -194,6 +196,7 @@ function submit_answer(index) {
     var data = JSON.stringify({"answer": index,
                                 "exercise_id": GLOBALS.current_exercise_id});
     xhr.open("POST", url, true);
+    xhr.withCredentials = true;
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
