@@ -153,6 +153,7 @@ class GlobalContainer:
         "last_time_revised_vocabulary",
         "vocabulary_background_thread",
         "clean_up_background_thread",
+        "is_running",
     ]
     def __init__(self, 
                  db_client,
@@ -179,6 +180,16 @@ class GlobalContainer:
         self.create_indexes()
         self.start_background_threads()
 
+        self.is_running = True
+
+    def __del__(self) -> None:
+        """
+        Destructor to clean up the database connection.
+        """
+        self.is_running = False
+        self.vocabulary_background_thread.join()
+        self.clean_up_background_thread.join()
+        
     def start_background_threads(self) -> None:
         """
         Start the background thread to revise vocabulary periodically.
@@ -419,7 +430,7 @@ class GlobalContainer:
         Background thread to revise vocabulary periodically.
         """
     
-        while True:
+        while self.is_running:
             
             try:
                 self.vocabulary_background_function_inner()
@@ -434,7 +445,7 @@ class GlobalContainer:
         Background thread to clean up the database periodically.
         """
 
-        while True:
+        while self.is_running:
 
             # ...
 
