@@ -143,10 +143,10 @@ USE_TZ = True
 
 if DEBUG:
     STATICFILES_DIRS = [
-        BASE_DIR / "staticfiles",
+        BASE_DIR / "static",
     ]
 else:# Production settings
-    STATIC_ROOT = BASE_DIR / "staticfiles"
+    STATIC_ROOT = BASE_DIR / "static"
 
 STATIC_URL = '/static/'
 
