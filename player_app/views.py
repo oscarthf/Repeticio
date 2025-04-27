@@ -266,8 +266,23 @@ def get_created_exercise(request):
     if exercise is not None:
 
         print(f"Exercise: {exercise}")
-        if "criteria" in exercise:
-            del exercise["criteria"] # remove the answer from the response
+
+        # Exercise: {'_id': ObjectId('680e813128a089206d8359ba'), 
+        #            'exercise_id': '7f4ae423-48da-4cce-bb20-a9e9f6ed7938', 
+        #            'created_at': 1745781041, 'criteria': 2, 
+        #            'exercise_type': '2_1', 
+        #            'final_strings': ['a) Cuándo / cuándo', 'b) Cuando / cuando', 'c) Cuándo / cuando', 'd) Cuando / cuándo'], 
+        #            'initial_strings': ['___ ___ estudias, te concentras mejor.'], 'language': 'es', 'level': 0, 
+        #            'middle_strings': ['Choose the correct first two words:'], 
+        #            'word_keys': ['1dba0d60-e5e5-413c-b719-8194f2293df7', '1dba0d60-e5e5-413c-b719-8194f2293df7'], 
+        #            'word_values': ['cuando', 'cuando']}
+        
+        exercise = {
+            "exercise_id": exercise.get("exercise_id", ""),
+            "initial_strings": list(exercise.get("initial_strings", [])),
+            "middle_strings": list(exercise.get("middle_strings", [])),
+            "final_strings": list(exercise.get("final_strings", []),)
+        }
         
         print("extra debug 8")
         return JsonResponse({"success": True,
