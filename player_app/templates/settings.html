@@ -12,15 +12,13 @@
                     <div class="card-body">
                         <h4 class="main_title text-center mb-4" id="player_title">Settings for {{ user.username }}</h4>
 
-                        <!-- 
-                            <a href="{% url 'create_checkout_session' %}">
-                                <button>Subscribe Now</button>
-                            </a>
-                        -->
-
-                        <!-- <button>
+                        <button class="btn btn-lg btn-primary w-100">
+                            <a href="{% url 'create_checkout_session' %}">Subscribe Now</a>
+                        </button>
+                        
+                        <button class="btn btn-lg btn-primary w-100">
                             <a href="{% url 'customer_portal' %}">Manage Subscription</a>
-                        </button> -->
+                        </button>
                     
                     </div>
                 </div>

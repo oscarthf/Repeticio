@@ -23,10 +23,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def check_subscription_active(user_id) -> bool:
 
-    # Find Stripe customer by email
     customers = stripe.Customer.list(email=user_id).data
     if not customers:
-        return False  # No customer found
+        return False # No customer found
     
     customer = customers[0]
 
@@ -64,29 +63,32 @@ def check_subscription_pipeline(global_container, user_id) -> bool:
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')  # or your desired post-login view
+        return redirect('home')
     return render(request, 'login.html')
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def create_checkout_session(request):
+    
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return redirect('settings')
+
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
 
-    # Create Stripe checkout session
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         mode='subscription',
         line_items=[{
-            'price': settings.STRIPE_PRICE_ID,  # We'll set this in a minute
+            'price': settings.STRIPE_PRICE_ID,
             'quantity': 1,
         }],
         success_url=f'{settings.FRONTEND_URL}/settings?session_id={{CHECKOUT_SESSION_ID}}',
         cancel_url=f'{settings.FRONTEND_URL}/settings',
-        customer_email=request.user.email,  # Important: use user's email from Google login
+        customer_email=request.user.email,
     )
     return redirect(session.url, code=303)
 
@@ -127,12 +129,13 @@ def stripe_webhook(request):
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def customer_portal(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    # First find the customer (you could save customer_id after checkout, or fetch by email)
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return redirect('settings')
+
     customers = stripe.Customer.list(email=request.user.email).data
     if not customers:
-        return redirect('settings')  # fallback if no customer found
+        return redirect('settings')# fallback if no customer found
     customer = customers[0]
 
     session = stripe.billing_portal.Session.create(
@@ -173,7 +176,6 @@ def home(request):
     
     global_container = get_global_container()
     
-    # check if language is set
     language = global_container.get_user_language(user_id)
 
     if language is None:
@@ -259,16 +261,6 @@ def get_created_exercise(request):
 
         print(f"Exercise: {exercise}")
 
-        # Exercise: {'_id': ObjectId('680e813128a089206d8359ba'), 
-        #            'exercise_id': '7f4ae423-48da-4cce-bb20-a9e9f6ed7938', 
-        #            'created_at': 1745781041, 'criteria': 2, 
-        #            'exercise_type': '2_1', 
-        #            'final_strings': ['a) Cuándo / cuándo', 'b) Cuando / cuando', 'c) Cuándo / cuando', 'd) Cuando / cuándo'], 
-        #            'initial_strings': ['___ ___ estudias, te concentras mejor.'], 'language': 'es', 'level': 0, 
-        #            'middle_strings': ['Choose the correct first two words:'], 
-        #            'word_keys': ['1dba0d60-e5e5-413c-b719-8194f2293df7', '1dba0d60-e5e5-413c-b719-8194f2293df7'], 
-        #            'word_values': ['cuando', 'cuando']}
-        
         exercise = {
             "exercise_id": exercise.get("exercise_id", ""),
             "initial_strings": list(exercise.get("initial_strings", [])),
