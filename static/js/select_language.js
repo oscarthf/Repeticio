@@ -1,5 +1,5 @@
 
-// let base_url = "{% url 'home' %}";
+// let home_url = "{% url 'home' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
 // let languages = [
@@ -45,7 +45,7 @@ function select_language(index) {
 
     var language_code = languages[index][0];
     
-    var url = base_url + "?language=" + language_code;
+    var url = home_url + "?language=" + language_code;
 
     window.location.href = url;
 

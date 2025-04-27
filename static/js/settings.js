@@ -1,5 +1,5 @@
 
-// let base_url = "{% url 'home' %}";
+// let home_url = "{% url 'home' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
 
