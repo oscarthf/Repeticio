@@ -1426,7 +1426,7 @@ class GlobalContainer:
             return False
         
         # check if user already has thumbs up or down for this exercise
-        user_exercise_thumbs_up_or_down = self.user_exercise_thumbs_up_or_down_collection.find_one({
+        user_exercise_thumbs_up_or_down = self.user_thumbs_collection.find_one({
             "user_id": user_id,
             "exercise_id": exercise_id
         })
@@ -1479,7 +1479,7 @@ class GlobalContainer:
             )
 
         # add to user exercise thumbs up or down collection
-        self.user_exercise_thumbs_up_or_down_collection.insert_one({
+        self.user_thumbs_collection.insert_one({
             "user_id": user_id,
             "exercise_id": exercise_id,
             "thumbs_up": thumbs_up
