@@ -377,8 +377,8 @@ def apply_thumbs_up_or_down(request):
     thumbs_up = True if thumbs_up.lower() == "true" else False
 
     success = global_container.apply_thumbs_up_or_down(user_id,
-                                                         exercise_id, 
-                                                         thumbs_up)
+                                                        exercise_id, 
+                                                        thumbs_up)
     
     return JsonResponse({"success": success}, status=200)
 
