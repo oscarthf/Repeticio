@@ -1087,10 +1087,10 @@ class GlobalContainer:
             number_of_words_needed -= 1
 
         if number_of_words_needed == 1:
-            exercise_index = np.random.choice(ONE_BLANK_EXERCISE_PROMPTS)
+            exercise_index = np.random.randint(0, len(ONE_BLANK_EXERCISE_PROMPTS))
             exercise_type = f"1_{exercise_index}"
         elif number_of_words_needed == 2:
-            exercise_index = np.random.choice(TWO_BLANK_EXERCISE_PROMPTS)
+            exercise_index = np.random.randint(0, len(TWO_BLANK_EXERCISE_PROMPTS))
             exercise_type = f"2_{exercise_index}"
         else:
             print(f"Invalid number of words needed: {number_of_words_needed}.")
