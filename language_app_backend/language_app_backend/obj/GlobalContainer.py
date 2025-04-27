@@ -257,7 +257,6 @@ class GlobalContainer:
         first_heartbeat_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         server_entry = {
             "server_id": self.server_id,
-            "is_main_server": self.is_main_server,
             "last_heartbeat": first_heartbeat_time,
             "startup_time": self.startup_time,
         }
