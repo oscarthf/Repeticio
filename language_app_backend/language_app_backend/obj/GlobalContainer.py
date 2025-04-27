@@ -1156,7 +1156,7 @@ class GlobalContainer:
             message = "Correct answer."
         else:
             message = f"Wrong answer. The correct answer was {exercise_criteria}."
-            
+
         return True, message, was_correct
 
     def increase_user_xp(self,
@@ -1410,6 +1410,22 @@ class GlobalContainer:
         """
         Apply thumbs up or down to the exercise in the database.
         """
+
+        # validate exercise_id
+        if not exercise_id or not isinstance(exercise_id, str):
+            print(f"Invalid exercise_id '{exercise_id}' for user {user_id}.")
+            return False
+        
+        try:
+            uuid.UUID(exercise_id, version=4)
+        except ValueError:
+            print(f"Exercise ID '{exercise_id}' is not a valid UUID for user {user_id}.")
+            return False
+        
+        # validate thumbs_up
+        if not isinstance(thumbs_up, bool):
+            print(f"Invalid thumbs_up value '{thumbs_up}' for user {user_id}.")
+            return False
 
         if thumbs_up:
             exercise_thumbs_up_or_down = self.exercise_thumbs_up_collection.find_one({"exercise_id": exercise_id})

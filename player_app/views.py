@@ -347,6 +347,43 @@ def get_user_object(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
+def apply_thumbs_up_or_down(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+
+    #######################
+
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
+    
+    #######################
+
+    data = request.GET
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    exercise_id = data.get("exercise_id")
+    thumbs_up = data.get("is_positive")
+
+    if not exercise_id or not thumbs_up:
+        return JsonResponse({"error": "Missing exercise_id or thumbs_up"}, status=400)
+    
+    thumbs_up = True if thumbs_up.lower() == "true" else False
+
+    success = global_container.apply_thumbs_up_or_down(user_id,
+                                                         exercise_id, 
+                                                         thumbs_up)
+    
+    return JsonResponse({"success": success}, status=200)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
 def submit_answer(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)

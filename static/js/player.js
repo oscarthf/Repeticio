@@ -151,6 +151,8 @@ function render_current_exercise() {
 
     //
 
+    //
+
     exercise_html += "<div class='initial_strings'>";
     for (var i = 0; i < initial_strings.length; i++) {
 
@@ -170,6 +172,13 @@ function render_current_exercise() {
     for (var i = 0; i < final_strings.length; i++) {
         exercise_html += "<div class='final_string' onclick='submit_answer(" + i + ")'>" + final_strings[i] + "</div>";
     }
+    exercise_html += "</div>";
+
+    // thumbs up and thumbs down buttons
+
+    exercise_html += "<div class='thumbs_buttons'>";
+    exercise_html += "<button class='thumbs_up' onclick='apply_thumbs_up(true)'>👍</button>";
+    exercise_html += "<button class='thumbs_down' onclick='apply_thumbs_up(false)'>👎</button>";
     exercise_html += "</div>";
 
     exercise_html += "</div>";
@@ -211,6 +220,37 @@ function render_results() {
     GLOBALS.player_wrapper.innerHTML += results_html;
 }
 
+function apply_thumbs_up(is_positive) {
+
+    console.log("Applying thumbs up:", is_positive);
+
+    if (GLOBALS.current_exercise_id == null) {
+        console.error("No current exercise ID set. Cannot apply thumbs up.");
+        return;
+    }
+
+    var is_positive_str = is_positive ? "true" : "false";
+
+    var url = apply_thumbs_up_url + "?is_positive=" + is_positive_str + "&exercise_id=" + GLOBALS.current_exercise_id;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                console.log("Thumbs up applied successfully:", response.message);
+                GLOBALS.current_exercise_results = response;
+                render_thumbs_up_results(is_positive);
+            } else {
+                console.error("Error applying thumbs up: " + response.error);
+            }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to apply thumbs up. Status: " + xhr.status + ", Response: " + xhr.responseText);
+        }
+    }
+    xhr.send();
+}
 
 function submit_answer(index) {
 

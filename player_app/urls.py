@@ -18,6 +18,7 @@ urlpatterns = [
     path('get_user_object', views.get_user_object, name='get_user_object'),
     path('submit_answer', views.submit_answer, name='submit_answer'),
     path('get_user_words', views.get_user_words, name='get_user_words'),
+    path('apply_thumbs_up_or_down', views.apply_thumbs_up_or_down, name='apply_thumbs_up_or_down'),
 
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
     path('stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
