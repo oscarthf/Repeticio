@@ -16,6 +16,7 @@ function Globals() {
     this.current_exercise_results = null;
     this.last_exercise = null;
     this.last_exercise_id = null;
+    this.csrftoken = null;
 }
 
 GLOBALS = new Globals();
@@ -203,6 +204,9 @@ function submit_answer(index) {
                                 "exercise_id": GLOBALS.current_exercise_id});
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    if (GLOBALS.csrftoken != null) {
+        xhr.setRequestHeader("X-CSRFToken", GLOBALS.csrftoken);
+    }
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
@@ -227,3 +231,21 @@ function submit_answer(index) {
 }
 
 init();
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+GLOBALS.csrftoken = getCookie("csrftoken");
