@@ -26,7 +26,7 @@
     
     <script>
         
-        let base_url = "{{ request.scheme }}://{{ request.get_host }}";
+        let base_url = "{% url 'home' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
 

@@ -36,13 +36,17 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 0. Clone this repo and generate your own django secret key for your .env file (create a blank text file next to manage.py called .env):
     from django.core.management.utils import get_random_secret_key  
     secret_key = get_random_secret_key()
-
 1. Create app in app platform, link to github.
 2. Choose repo and branch.
-3. Choose hardware shape for BOTH instances.
+3. Choose hardware shape and port for BOTH instances.
 4. Set app level env vars (from .env is convenient), not instance level.
 5. Build for first time.
-6. Set domain name (openlanguageapp.xyz in my case).
+6. Add domain name:
+    Enter domain name
+    Select "We manage your domain"
+    Copy name servers into wherever you got the domain name
+    Wait for update, could take a while but probably not hours (they say could take 72 hours)
+7. 
 ```
 
 ## To create Stripe Webhook (for subscription payments):
