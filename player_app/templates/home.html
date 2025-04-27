@@ -5,12 +5,20 @@
 {% block title %}Open Language App{% endblock %} 
 {% block content %}
 
-    
-
-    <div class="main_content">
-        <h4 class="main_title" id="player_title">Welcome {{ user.username }}</h4>
-        <div id="player_wrapper"></div>
-        <button id="main_action_button">Start</button>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg rounded">
+                    <div class="card-body">
+                        <h4 class="main_title text-center mb-4" id="player_title">
+                            👋 Welcome <span class="text-primary">{{ user.username }}</span>
+                        </h4>
+                        <div id="player_wrapper" class="mb-4"></div>
+                        <button id="main_action_button" class="btn btn-lg btn-primary w-100">Start</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="{% static 'js/common.js' %}"></script>
@@ -27,6 +35,5 @@
     </script>
 
     <script src="{% static 'js/player.js' %}"></script>
-
 
 {% endblock %}

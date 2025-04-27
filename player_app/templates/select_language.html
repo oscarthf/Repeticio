@@ -5,12 +5,16 @@
 {% block title %}Open Language App | Select a Language{% endblock %} 
 {% block content %}
 
-    <div class="main_content">
-        <h4 class="main_title">Welcome {{ user.username }}</h4>
-
-        <div id="language_selection_wrapper" class="language_selection">
-            <h4 class="secondary_title">Select a Language</h4>    
-            <div id="language_list"></div>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg rounded">
+                    <div class="card-body">
+                        <h4 class="secondary_title text-center mb-4">Select a Language</h4>    
+                        <div id="language_list" class="mb-4"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

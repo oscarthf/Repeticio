@@ -5,12 +5,20 @@
 {% block title %}Sign in{% endblock %} 
 {% block content %}
 
-    <div class="main_content">
-        <button>
-            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login With Google</a>
-        </button>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg rounded">
+                    <div class="card-body">
+                        <button class="btn btn-lg btn-primary w-100">
+                            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login With Google</a>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
+
     <script src="{% static 'js/common.js' %}"></script>
 
     <script src="{% static 'js/login.js' %}"></script>
