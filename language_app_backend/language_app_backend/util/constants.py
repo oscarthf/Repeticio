@@ -12,7 +12,8 @@ OPENAI_MODEL_NAME = "gpt-4o"
 
 DO_NOT_CHECK_SUBSCRIPTION = True# This is for testing purposes only. In production, set this to False.
 
-OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]
+# OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]
+OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
 
 CHECK_SUBSCRIPTION_INTERVAL = 10 * 60  # 10 minutes
 DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
