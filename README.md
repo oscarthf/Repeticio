@@ -3,6 +3,16 @@
 ### About
 #### This project is an experimental language web app which utilizes an LLM (currently from OpenAI) to create an entire course in any language. The prompts need some work, both to improve the quality of exercises and to create more targeted exercises to test grammer or special concepts.
 
+## Stack:
+
+```
+Django/Gunicorn server hosted using Digital Ocean App Platform
+MongoDB Atlas as database
+Google login
+Stripe payments
+OpenAI large language model API
+```
+
 ## Environment variables needed:
 
 ```
