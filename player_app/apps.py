@@ -10,4 +10,8 @@ class PlayerAppConfig(AppConfig):
     
     def ready(self):
         load_dotenv()
-        setup_globals()
+        try:
+            setup_globals()
+        except Exception as e:
+            print(f"Error setting up globals: {e}")
+            raise e
