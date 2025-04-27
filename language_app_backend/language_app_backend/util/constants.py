@@ -7,7 +7,8 @@ VOCABULARY_REVISION_INTERVAL = 4 * 60 * 60 # 4 hours
 MAX_CONCURRENT_EXERCISE_CREATIONS = 3
 MAX_WORD_LENGTH = 32
 
-OPENAI_MODEL_NAME = "gpt-4.1"
+# OPENAI_MODEL_NAME = "gpt-4.1"
+OPENAI_MODEL_NAME = "gpt-4o"
 
 DO_NOT_CHECK_SUBSCRIPTION = True# This is for testing purposes only. In production, set this to False.
 
