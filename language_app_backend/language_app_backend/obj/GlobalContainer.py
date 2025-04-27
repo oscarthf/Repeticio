@@ -96,7 +96,7 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
 
     return user_entry
 
-def empty_exercise_doc(exercise_key) -> Dict[Any, Any]:
+def empty_exercise_id_list_doc(exercise_key) -> Dict[Any, Any]:
     """
     Create an empty exercise document for the database.
     """
@@ -145,14 +145,15 @@ class GlobalContainer:
         "words_collection",
         "user_words_collection",
         "users_collection",
+        "exercises_id_lists_collection",
         "exercises_collection",
-        "exercises_by_id_collection",
         "exercise_thumbs_up_collection",
         "exercise_thumbs_down_collection",
         "llm",
         "last_time_revised_vocabulary",
         "vocabulary_background_thread",
         "clean_up_background_thread",
+        "is_running",
     ]
     def __init__(self, 
                  db_client,
@@ -164,8 +165,8 @@ class GlobalContainer:
         self.words_collection = self.db["words"]
         self.user_words_collection = self.db["user_words"]
         self.users_collection = self.db["users"]
+        self.exercises_id_lists_collection = self.db["exercise_id_lists"]
         self.exercises_collection = self.db["exercises"]
-        self.exercises_by_id_collection = self.db["exercises_by_id"]
         self.exercise_thumbs_up_collection = self.db["exercise_thumbs_up"]
         self.exercise_thumbs_down_collection = self.db["exercise_thumbs_down"]
 
@@ -179,6 +180,16 @@ class GlobalContainer:
         self.create_indexes()
         self.start_background_threads()
 
+        self.is_running = True
+
+    def __del__(self) -> None:
+        """
+        Destructor to clean up the database connection.
+        """
+        self.is_running = False
+        self.vocabulary_background_thread.join()
+        self.clean_up_background_thread.join()
+        
     def start_background_threads(self) -> None:
         """
         Start the background thread to revise vocabulary periodically.
@@ -264,7 +275,7 @@ class GlobalContainer:
         self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
         self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
         self.users_collection.create_index([('user_id', PY_MONGO_ASCENDING)], unique=True)
-        self.exercises_collection.create_index([('_id', PY_MONGO_ASCENDING)])
+        self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)])
 
         ##################################################################
 
@@ -301,6 +312,7 @@ class GlobalContainer:
             for word_value in word_values:
                 word_key = str(uuid.uuid4())
                 word_value = word_value.replace(" ", "_")
+                level = int(level)
                 word_doc = empty_word_document(word_key,
                                                 word_value,
                                                 language,
@@ -418,7 +430,7 @@ class GlobalContainer:
         Background thread to revise vocabulary periodically.
         """
     
-        while True:
+        while self.is_running:
             
             try:
                 self.vocabulary_background_function_inner()
@@ -433,7 +445,7 @@ class GlobalContainer:
         Background thread to clean up the database periodically.
         """
 
-        while True:
+        while self.is_running:
 
             # ...
 
@@ -639,7 +651,13 @@ class GlobalContainer:
                 return 4
             
             # add next set of words to locked words
-            this_level_words = self.get_words_for_level(current_language, current_level)
+            this_level_words = self.get_words_for_level(current_language, 
+                                                        current_level)
+
+            if not this_level_words or not len(this_level_words):
+                print(f"No words found for level {current_level} in language '{current_language}'.")
+                return -1
+
             this_level_word_keys = [word["_id"] for word in this_level_words]
 
             word_keys = [word["_id"] for word in words]
@@ -780,14 +798,14 @@ class GlobalContainer:
 
         exercise_key = f"{exercise_type}__{current_language}__{current_level}__{sorted_word_keys_combined}"
 
-        exercise_doc = self.exercises_collection.find_one({"_id": exercise_key})
+        exercise_id_list_doc = self.exercises_id_lists_collection.find_one({"_id": exercise_key})
 
-        if not exercise_doc:
+        if not exercise_id_list_doc:
             print(f"Excersize document not found for key '{exercise_key}'.")
-            exercise_doc = empty_exercise_doc(exercise_key)
+            exercise_id_list_doc = empty_exercise_id_list_doc(exercise_key)
 
         print(f"Excersize document found for key '{exercise_key}'.")
-        exercise_id_list = exercise_doc.get("exercise_id_list", None)
+        exercise_id_list = exercise_id_list_doc.get("exercise_id_list", None)
 
         if exercise_id_list is None:
             print(f"Exercise list not found for key '{exercise_key}'.")
@@ -846,7 +864,7 @@ class GlobalContainer:
         exercise["created_at"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
         exercise_id_list.append(exercise_id)
-        self.exercises_collection.update_one(
+        self.exercises_id_lists_collection.update_one(
             {"_id": exercise_key},
             {"$set": {
                 "exercise_id_list": exercise_id_list
@@ -855,7 +873,7 @@ class GlobalContainer:
         )
         print(f"Created new exercise for key '{exercise_key}': {exercise}.")
 
-        self.exercises_by_id_collection.update_one(
+        self.exercises_collection.update_one(
             {"exercise_id": exercise["exercise_id"]},
             {"$set": exercise},
             upsert=True
@@ -898,7 +916,7 @@ class GlobalContainer:
         if 1:
             # remove from the exercises_by_id collection
             # worst_exercise_id = worst_exercise["exercise_id"]
-            self.exercises_by_id_collection.delete_one({"exercise_id": worst_exercise_id})
+            self.exercises_collection.delete_one({"exercise_id": worst_exercise_id})
             
         return exercise_id_list
         
@@ -935,7 +953,7 @@ class GlobalContainer:
         ##########################################################################
 
         # check if exercise_id exists in the database
-        exercise = self.exercises_by_id_collection.find_one({"exercise_id": exercise_id})
+        exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
 
         if not exercise:
             print(f"Exercise ID '{exercise_id}' not found in the database.")
@@ -1118,7 +1136,7 @@ class GlobalContainer:
         
         print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
-        exercise = self.exercises_by_id_collection.find_one({"exercise_id": exercise_id})
+        exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
 
         if not exercise:
             print(f"Exercise ID '{exercise_id}' not found in the database.")
