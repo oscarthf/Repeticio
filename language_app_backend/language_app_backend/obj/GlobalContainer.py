@@ -139,8 +139,14 @@ def empty_word_document(word_key,
 
 class GlobalContainer:
     __slots__ = [
+        "server_id",
+        "is_main_server",
+        "startup_time",
+
         "db_client", 
         "db",
+
+        'servers_collection',
         "settings_collection",
         "words_collection",
         "user_words_collection",
@@ -149,18 +155,27 @@ class GlobalContainer:
         "exercises_collection",
         "exercise_thumbs_up_collection",
         "exercise_thumbs_down_collection",
+
         "llm",
+        
         "last_time_revised_vocabulary",
+
         "vocabulary_background_thread",
         "clean_up_background_thread",
+        
         "is_running",
     ]
     def __init__(self, 
                  db_client,
                  llm) -> None:
+        
+        self.server_id = str(uuid.uuid4())
+        self.is_main_server = False
+        self.startup_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
         self.db_client = db_client
         self.db = db_client["language_app"]
+        self.servers_collection = self.db["servers"]
         self.settings_collection = self.db["settings"]
         self.words_collection = self.db["words"]
         self.user_words_collection = self.db["user_words"]
@@ -178,8 +193,10 @@ class GlobalContainer:
 
         self.is_running = True
 
-        # Create indexes on commonly queried fields
         self.create_indexes()
+
+        self.register_server()
+
         self.start_background_threads()
 
     def __del__(self) -> None:
@@ -189,7 +206,68 @@ class GlobalContainer:
         self.is_running = False
         self.vocabulary_background_thread.join()
         self.clean_up_background_thread.join()
+
+    def check_if_is_main_server(self) -> bool:
+        """
+        Check if the server is the main server.
+        """
+        # get all servers in the database
+        servers = self.servers_collection.find({})
+
+        servers = list(servers)
+
+        if not len(servers):
+            print("No servers found in the database.")
+            return False
         
+        # get all servers with time since last heartbeat less than 1 minute old
+        current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+        servers = [server for server in servers if current_time - server["last_heartbeat"] < 60]
+
+        if not len(servers):
+            print("No servers found with recent heartbeats.")
+            return False
+        
+        # get all servers with time since startup time more than 1 minute old
+        servers = [server for server in servers if current_time - server["startup_time"] > 60]
+
+        if not len(servers):
+            print("No servers found with old enough startup times.")
+            return False
+        
+        # get the server with the alpha-numeric id that is the lowest
+        server_ids = [server["server_id"] for server in servers]
+
+        server_ids = sorted(server_ids)
+
+        main_server_id = server_ids[0]
+
+        if main_server_id == self.server_id:
+            print(f"Server {self.server_id} is the main server.")
+            return True
+        else:
+            print(f"Server {self.server_id} is not the main server. Main server is {main_server_id}.")
+            return False
+
+    def register_server(self) -> None:
+        """
+        Register the server in the database.
+        """
+        first_heartbeat_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+        server_entry = {
+            "server_id": self.server_id,
+            "last_heartbeat": first_heartbeat_time,
+            "startup_time": self.startup_time,
+        }
+
+        self.servers_collection.update_one(
+            {"server_id": self.server_id},
+            {"$set": server_entry},
+            upsert=True
+        )
+        print(f"Server {self.server_id} registered in the database.")
+
     def start_background_threads(self) -> None:
         """
         Start the background thread to revise vocabulary periodically.
@@ -272,6 +350,7 @@ class GlobalContainer:
         
         ##################################################################
         
+        self.servers_collection.create_index([('server_id', PY_MONGO_ASCENDING)], unique=True)
         self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
         self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
         self.users_collection.create_index([('user_id', PY_MONGO_ASCENDING)], unique=True)
@@ -432,10 +511,11 @@ class GlobalContainer:
     
         while self.is_running:
             
-            try:
-                self.vocabulary_background_function_inner()
-            except Exception as e:
-                print(f"Error in vocabulary background function: {e}")
+            if self.is_main_server:
+                try:
+                    self.vocabulary_background_function_inner()
+                except Exception as e:
+                    print(f"Error in vocabulary background function: {e}")
 
             # time.sleep(60 * 60)  # Run every hour
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
@@ -458,7 +538,36 @@ class GlobalContainer:
             while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
                 if self.is_running:
                     time.sleep(1)
-            
+    
+    def update_server_heartbeat_function_inner(self):
+    
+        current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+
+        self.servers_collection.update_one(
+            {"server_id": self.server_id},
+            {"$set": {
+                "last_heartbeat": current_time
+            }}
+        )
+
+        print(f"Server {self.server_id} heartbeat updated in the database.")
+
+        self.is_main_server = self.check_if_is_main_server()
+
+    def update_server_heartbeat_function(self):
+        
+        while self.is_running:
+
+            try:
+                self.update_server_heartbeat_function_inner()
+            except Exception as e:
+                print(f"Error in server heartbeat function: {e}")
+
+            # time.sleep(10)  # Run every 10 seconds
+            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
+            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < 10:
+                if self.is_running:
+                    time.sleep(1)
     
     def revise_vocabulary(self,
                             language) -> bool:
