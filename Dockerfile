@@ -15,9 +15,7 @@ RUN python -m pip install --upgrade pip
 # Install the dependencies (including language_app_backend using "-e ./language_app_backend")
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
-# RUN python manage.py collectstatic --noinput
-
-# Run using startup.bash
+# Run using startup.bash (in Digital Ocean App Platform, this will be skipped and the command in the Procfile will be used)
 CMD ["bash", "startup.bash"]
 
 # to build the image, run the following command in the terminal:
