@@ -614,7 +614,7 @@ class GlobalContainer:
 
         if words is None:
             print(f"No words found for user {user_id}.")
-            return -1
+            words = []
 
         locked_words = self.get_user_words(user_id, 
                                            current_language,
@@ -622,9 +622,10 @@ class GlobalContainer:
 
         if locked_words is None:
             print(f"No locked words found for user {user_id}.")
-            return -1
+            locked_words = []
 
         if not len(locked_words):
+
             print(f"No locked words found for user {user_id}.")
             # check if the user is at the max level
             current_level = language_data.get("current_level", 0)
@@ -658,6 +659,7 @@ class GlobalContainer:
             self.add_word_to_locked_words(user_id,
                                             random_word_key,
                                             current_language)
+            locked_words.append(random_word_key)
         
         if not len(words):
             unlocked_word = locked_words.pop(0)
@@ -1185,7 +1187,7 @@ class GlobalContainer:
         """
         
         current_user_word = self.user_words_collection.find_one({"_id": word_key,
-                                                            "user_id": user_id})
+                                                                 "user_id": user_id})
         if current_user_word:
             print(f"Word ID '{word_key}' already exists in user {user_id}'s word list.")
             return False
