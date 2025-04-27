@@ -2,7 +2,7 @@
 FROM python:3.10
 
 # Set the working directory
-WORKDIR /
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3-setuptools
 
@@ -10,16 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3-setupto
 RUN python -m pip install --upgrade pip
 
 # Copy the language app backend package into the container
-COPY language_app_backend /language_app_backend
+COPY language_app_backend /app/language_app_backend
 
 # Copy the requirements file into the container
-COPY requirements.txt /requirements.txt
+COPY requirements.txt /app/requirements.txt
 
 # Install the dependencies (including language_app_backend using "-e ./language_app_backend")
 RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the server package into the container
-COPY server /
+COPY server /app/
 
 # Run using startup.bash
 CMD ["bash", "startup.bash"]
