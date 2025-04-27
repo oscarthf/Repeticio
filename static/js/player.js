@@ -1,5 +1,6 @@
 
-// let base_url = "{% url 'home' %}";
+// let get_new_exercise_url = "{% url 'get_new_exercise' %}";
+// let submit_answer_url = "{% url 'submit_answer' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
 
@@ -37,7 +38,7 @@ function main_action() {
     console.log("Main action triggered.");
 
     if (GLOBALS.current_exercise_id == null) {
-        var url = base_url + "/get_new_exercise";
+        var url = get_new_exercise_url;
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.onreadystatechange = function() {
@@ -134,7 +135,7 @@ function submit_answer(index) {
     }
 
     console.log("Answer submitted for exercise " + index);
-    var url = base_url + "/submit_answer";
+    var url = submit_answer_url;
     var xhr = new XMLHttpRequest();
     var data = JSON.stringify({"answer": index,
                                 "exercise_id": GLOBALS.current_exercise_id});
