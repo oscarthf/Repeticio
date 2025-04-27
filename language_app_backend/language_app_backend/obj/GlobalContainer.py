@@ -162,6 +162,7 @@ class GlobalContainer:
 
         "vocabulary_background_thread",
         "clean_up_background_thread",
+        "update_server_heartbeat_thread",
         
         "is_running",
     ]
@@ -190,6 +191,7 @@ class GlobalContainer:
 
         self.vocabulary_background_thread = None
         self.clean_up_background_thread = None
+        self.update_server_heartbeat_thread = None
 
         self.is_running = True
 
@@ -204,8 +206,12 @@ class GlobalContainer:
         Destructor to clean up the database connection.
         """
         self.is_running = False
+        print("Stopping background threads...")
+        print("Joining vocabulary background thread...")
         self.vocabulary_background_thread.join()
+        print("Joining clean up background thread...")
         self.clean_up_background_thread.join()
+        print("Threads stopped.")
 
     def check_if_is_main_server(self) -> bool:
         """
@@ -281,6 +287,11 @@ class GlobalContainer:
         self.clean_up_background_thread.start()
 
         print("Clean up background thread started.")
+
+        self.update_server_heartbeat_thread = threading.Thread(target=self.update_server_heartbeat_function, daemon=True)
+        self.update_server_heartbeat_thread.start()
+
+        print("Server heartbeat background thread started.")
 
     def set_last_time_checked_subscription(self, user_id, current_time) -> None:
         current_time_unix = int(current_time.timestamp())
@@ -517,7 +528,6 @@ class GlobalContainer:
                 except Exception as e:
                     print(f"Error in vocabulary background function: {e}")
 
-            # time.sleep(60 * 60)  # Run every hour
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
             while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
                 if self.is_running:
@@ -533,7 +543,6 @@ class GlobalContainer:
 
             # ...
 
-            # time.sleep(60 * 60)  # Run every hour
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
             while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
                 if self.is_running:
@@ -563,7 +572,6 @@ class GlobalContainer:
             except Exception as e:
                 print(f"Error in server heartbeat function: {e}")
 
-            # time.sleep(10)  # Run every 10 seconds
             start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
             while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < 10:
                 if self.is_running:
