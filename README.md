@@ -33,8 +33,6 @@ OPEN_LANGUAGE_APP_SECRET_KEY=<OPEN_LANGUAGE_APP_SECRET_KEY>
 4. Set app level env vars (from .env is convenient), not instance level.
 5. Build for first time.
 6. Set domain name (openlanguageapp.xyz in my case).
-7. Add the following to your secondary instance build command: (Necessary?)
-    python manage.py collectstatic --noinput
 ```
 
 ## To create Stripe Webhook (for subscription payments):
