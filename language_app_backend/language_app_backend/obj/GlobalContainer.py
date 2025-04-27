@@ -582,9 +582,7 @@ class GlobalContainer:
             print(f"No words found for user {user_id}.")
             return None
         
-        user_words_keys = [word["_id"] for word in user_words]
-
-        return user_words_keys
+        return user_words
         
     def check_if_should_unlock_new_word(self, 
                                         user_id) -> int:
@@ -656,10 +654,15 @@ class GlobalContainer:
             
             random_word_key = np.random.choice(this_level_word_keys_not_in_words)
 
-            self.add_word_to_locked_words(user_id,
-                                            random_word_key,
-                                            current_language)
-            locked_words.append(random_word_key)
+            (random_word, 
+             success) = self.add_word_to_locked_words(user_id,
+                                                        random_word_key,
+                                                        current_language)
+            if not success:
+                print(f"Failed to add word '{random_word_key}' to locked words for user {user_id}.")
+                return -1
+            
+            locked_words.append(random_word)
         
         if not len(words):
             unlocked_word = locked_words.pop(0)
@@ -1190,7 +1193,7 @@ class GlobalContainer:
                                                                  "user_id": user_id})
         if current_user_word:
             print(f"Word ID '{word_key}' already exists in user {user_id}'s word list.")
-            return False
+            return None, False
 
         word_entry = empty_word_entry(word_key,
                                       user_id,
@@ -1204,6 +1207,8 @@ class GlobalContainer:
         )
         
         print(f"Word ID '{word_key}' added to user {user_id}'s word list.")
+
+        return word_entry, True
 
     def get_next_word(self, user_id) -> Tuple[Optional[str], bool]:
         """
