@@ -268,7 +268,8 @@ def get_created_exercise(request):
         print(f"Exercise: {exercise}")
         if "criteria" in exercise:
             del exercise["criteria"] # remove the answer from the response
-            
+        
+        print("extra debug 8")
         return JsonResponse({"success": True,
                             "exercise": exercise}, status=200)
     else:
