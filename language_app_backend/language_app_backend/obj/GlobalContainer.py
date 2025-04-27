@@ -20,7 +20,8 @@ from ..util.constants import (SUPPORTED_LANGUAGES,
                               MIN_THUMB_VOLUME,
                               MAX_WORD_LENGTH,
                               VOCABULARY_REVISION_ITERATIONS,
-                              VOCABULARY_REVISION_INTERVAL)
+                              VOCABULARY_REVISION_INTERVAL,
+                              MAX_CONCURRENT_EXERCISE_CREATIONS)
 
 def next_word(word_keys, 
               word_scores, 
@@ -87,6 +88,8 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "current_language": language,
         "subscription_status": False,
         "last_time_checked_subscription": 0,
+        "last_created_exercise_id": "",
+        "last_created_exercise_time": 0,
         "languages": {
             language: {
                 "current_level": 0,
@@ -163,6 +166,7 @@ class GlobalContainer:
         "vocabulary_background_thread",
         "clean_up_background_thread",
         "update_server_heartbeat_thread",
+        "create_exercise_threads",
         
         "is_running",
     ]
@@ -192,6 +196,7 @@ class GlobalContainer:
         self.vocabulary_background_thread = None
         self.clean_up_background_thread = None
         self.update_server_heartbeat_thread = None
+        self.create_exercise_threads = []
 
         self.is_running = True
 
@@ -1215,8 +1220,39 @@ class GlobalContainer:
             )
             print(f"Updated word ID '{word_key}' for user {user_id}.")
 
-    def get_new_exercise(self,
-                          user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
+    def get_created_exercise(self,
+                             user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
+        
+        """
+        Get the created exercise for the user from the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return None, False
+        
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
+
+        if not last_created_exercise_id:
+            print(f"User {user_id} has no last created exercise ID.")
+            return None, False
+        
+        if last_created_exercise_id == "PROCESSING":
+            print(f"User {user_id} is currently creating a new exercise.")
+            return None, True# also return True to indicate that the user is currently creating a new exercise
+
+        exercise = self.exercises_collection.find_one({"exercise_id": last_created_exercise_id})
+
+        if not exercise:
+            print(f"Exercise ID '{last_created_exercise_id}' not found in the database.")
+            return None, False
+
+        return exercise, True
+    
+    def create_new_exercise(self,
+                            user_id) -> bool:
         
         """
         Get a new exercise for the user from the database.
@@ -1226,17 +1262,61 @@ class GlobalContainer:
 
         if not user:
             print(f"User {user_id} not found in the database.")
-            return None, False
+            return False
+        
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
+
+        if last_created_exercise_id == "PROCESSING":
+            
+            last_created_exercise_time = user.get("last_created_exercise_time", 0)
+
+            current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+            if current_time - last_created_exercise_time < 60:  # 1 minute
+                print(f"User {user_id} is already creating a new exercise.")
+                return False
+        
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "last_created_exercise_id": "PROCESSING",
+                "last_created_exercise_time": int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+            }}
+        )
+
+        ##################
+
+        while len(self.create_exercise_threads) > MAX_CONCURRENT_EXERCISE_CREATIONS:
+            # wait for a thread to finish
+            time.sleep(1)
+            for thread in self.create_exercise_threads:
+                if not thread.is_alive():
+                    self.create_exercise_threads.remove(thread)
+
+        create_exercise_thread = threading.Thread(target=self.create_new_exercise_inner,
+                                                    args=(user_id, user),
+                                                    daemon=True)
+        create_exercise_thread.start()
+        self.create_exercise_threads.append(create_exercise_thread)
+
+        return True
+
+    def create_new_exercise_inner(self, 
+                                  user_id,
+                                  user) -> bool:
+        
+        """
+        Create a new exercise for the user.
+        """
 
         current_language = user.get("current_language", None)
         if current_language not in SUPPORTED_LANGUAGES:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
-            return None, False
+            return False
         
         current_level = user.get("languages", {}).get(current_language, {}).get("current_level", None)
         if current_level is None:
             print(f"No current level found for user {user_id}.")
-            return None, False
+            return False
         
         number_of_words_needed = 2
 
@@ -1251,7 +1331,7 @@ class GlobalContainer:
             exercise_type = f"2_{exercise_index}"
         else:
             print(f"Invalid number of words needed: {number_of_words_needed}.")
-            return None, False
+            return False
         
         word_keys = []
 
@@ -1262,7 +1342,7 @@ class GlobalContainer:
             
             if not success:
                 print(f"Failed to get next word for user {user_id}.")
-                return None, False
+                return False
             
             word_keys.append(word_key)
             
@@ -1273,17 +1353,19 @@ class GlobalContainer:
         
         if not exercise_id:
             print(f"Failed to get exercise ID for user {user_id}.")
-            return None, False
+            return False
         
         print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
-        exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "last_created_exercise_id": exercise_id
+            }}
+        )
+        print(f"User {user_id}'s last created exercise ID set to '{exercise_id}'.")
 
-        if not exercise:
-            print(f"Exercise ID '{exercise_id}' not found in the database.")
-            return None, False
-
-        return exercise, True
+        return True
     
     def apply_thumbs_up_or_down(self,
                                  user_id,
