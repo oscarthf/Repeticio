@@ -231,7 +231,13 @@ class GlobalContainer:
         # get all servers with time since last heartbeat less than 1 minute old
         current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
+        original_server_ids = [server["server_id"] for server in servers]
+
         servers = [server for server in servers if current_time - server["last_heartbeat"] < 60]
+
+        server_ids = [server["server_id"] for server in servers]
+
+        old_server_ids = [server_id for server_id in original_server_ids if server_id not in server_ids]
 
         if not len(servers):
             print("No servers found with recent heartbeats.")
@@ -253,6 +259,14 @@ class GlobalContainer:
 
         if main_server_id == self.server_id:
             print(f"Server {self.server_id} is the main server.")
+            
+            if len(old_server_ids):
+                print(f"Removing old servers from the database: {old_server_ids}.")
+                try:
+                    self.servers_collection.delete_many({"server_id": {"$in": old_server_ids}})
+                except Exception as e:
+                    print(f"Error removing old servers from the database: {e}")
+
             return True
         else:
             print(f"Server {self.server_id} is not the main server. Main server is {main_server_id}.")
