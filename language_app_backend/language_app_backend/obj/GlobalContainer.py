@@ -437,7 +437,11 @@ class GlobalContainer:
             except Exception as e:
                 print(f"Error in vocabulary background function: {e}")
 
-            time.sleep(60 * 60)  # Run every hour
+            # time.sleep(60 * 60)  # Run every hour
+            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
+            while datetime.datetime.now(datetime.timezone.utc) - start_waiting_time < (60 * 60):
+                if self.is_running:
+                    time.sleep(1)
 
     def clean_up_background_function(self) -> None:
 
@@ -449,7 +453,11 @@ class GlobalContainer:
 
             # ...
 
-            time.sleep(60 * 60)  # Run every hour
+            # time.sleep(60 * 60)  # Run every hour
+            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
+            while datetime.datetime.now(datetime.timezone.utc) - start_waiting_time < (60 * 60):
+                if self.is_running:
+                    time.sleep(1)
             
     
     def revise_vocabulary(self,
