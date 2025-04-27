@@ -102,7 +102,7 @@ def empty_exercise_doc(exercise_key) -> Dict[Any, Any]:
     """
     return {
         "_id": exercise_key,
-        "exercise_list": [],
+        "exercise_id_list": [],
     }
 
 def empty_word_entry(word_key,
@@ -766,13 +766,13 @@ class GlobalContainer:
 
         return True
     
-    def get_exercise(self,
+    def get_exercise_id(self,
                         word_keys,
                         exercise_type,
                         current_language,
-                        current_level) -> Dict[Any, Any]:
+                        current_level) -> str:
         """
-        Get an exercise for the user from the database.
+        Get an exercise id for the user from the database.
         """
 
         sorted_word_keys = sorted(word_keys, key=lambda x: x.lower())
@@ -787,35 +787,35 @@ class GlobalContainer:
             exercise_doc = empty_exercise_doc(exercise_key)
 
         print(f"Excersize document found for key '{exercise_key}'.")
-        exercise_list = exercise_doc.get("exercise_list", None)
+        exercise_id_list = exercise_doc.get("exercise_id_list", None)
 
-        if exercise_list is None:
+        if exercise_id_list is None:
             print(f"Exercise list not found for key '{exercise_key}'.")
-            exercise_list = []
+            exercise_id_list = []
 
-        if len(exercise_list) < MAX_NUMBER_OF_EXERCISES:
+        if len(exercise_id_list) < MAX_NUMBER_OF_EXERCISES:
             
-            exercise_list = self.add_to_exercise_list(exercise_key,
-                                                        word_keys,
-                                                        exercise_type,
-                                                        current_language,
-                                                        current_level)
+            exercise_id_list = self.add_to_exercise_id_list(exercise_key,
+                                                            word_keys,
+                                                            exercise_type,
+                                                            current_language,
+                                                            current_level)
 
         else:
 
-            exercise_list = self.revise_exercise_list(exercise_list)
+            exercise_id_list = self.revise_exercise_id_list(exercise_id_list)
 
-        exercise = np.random.choice(exercise_list)
-        print(f"Excersize found for key '{exercise_key}': {exercise}.")
+        exercise_id = np.random.choice(exercise_id_list)
+        print(f"Excersize found for key '{exercise_key}': {exercise_id}.")
 
-        return exercise
+        return exercise_id
     
-    def add_to_exercise_list(self,
-                            exercise_key,
-                            word_keys,
-                            exercise_type,
-                            current_language,
-                            current_level) -> None:
+    def add_to_exercise_id_list(self,
+                                exercise_key,
+                                word_keys,
+                                exercise_type,
+                                current_language,
+                                current_level) -> None:
         
         """
         Add a new exercise to the exercise list in the database.
@@ -829,7 +829,7 @@ class GlobalContainer:
             print(f"Not all word keys found in the database for key '{exercise_key}'.")
             return None
         
-        exercise_list = []
+        exercise_id_list = []
         exercise = self.llm.create_exercise(word_values,
                                             exercise_type,
                                             current_language,
@@ -839,15 +839,17 @@ class GlobalContainer:
             print(f"Failed to create exercise for key '{exercise_key}'.")
             return None
         
+        exercise_id = str(uuid.uuid4())
+        
         exercise["word_keys"] = word_keys
-        exercise["exercise_id"] = str(uuid.uuid4())
+        exercise["exercise_id"] = exercise_id
         exercise["created_at"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
-        exercise_list.append(exercise)
+        exercise_id_list.append(exercise_id)
         self.exercises_collection.update_one(
             {"_id": exercise_key},
             {"$set": {
-                "exercise_list": exercise_list
+                "exercise_id_list": exercise_id_list
             }},
             upsert=True
         )
@@ -863,17 +865,17 @@ class GlobalContainer:
             upsert=True
         )
 
-        return exercise_list
+        return exercise_id_list
     
-    def revise_exercise_list(self,
-                             exercise_list) -> list:
+    def revise_exercise_id_list(self,
+                                exercise_id_list) -> list:
         
         thumbs_up_values = []
         thumbs_down_values = []
         thumb_volumes = []
         thumb_averages = []
-        for exercise in exercise_list:
-            exercise_id = exercise["exercise_id"]
+        for exercise_id in exercise_id_list:
+            # exercise_id = exercise["exercise_id"]
             thumbs_up = self.get_exercise_thumbs_up_or_down(exercise_id, True)
             thumbs_down = self.get_exercise_thumbs_up_or_down(exercise_id, False)
             thumbs_up_values.append(thumbs_up)
@@ -891,18 +893,18 @@ class GlobalContainer:
 
         if worst_exercise_average > 0.5:
             print(f"All exercises are good, no need to revise.")
-            return exercise_list
+            return exercise_id_list
         
         # remove the worst exercise from the list
-        worst_exercise = exercise_list.pop(worst_exercise_index)
-        print(f"Removing worst exercise: {worst_exercise}.")
+        worst_exercise_id = exercise_id_list.pop(worst_exercise_index)
+        print(f"Removing worst exercise id: {worst_exercise_id}.")
 
         if 1:
             # remove from the exercises_by_id collection
-            worst_exercise_id = worst_exercise["exercise_id"]
+            # worst_exercise_id = worst_exercise["exercise_id"]
             self.exercises_by_id_collection.delete_one({"exercise_id": worst_exercise_id})
             
-        return exercise_list
+        return exercise_id_list
         
     def submit_answer(self,
                       user_id,
@@ -1109,12 +1111,22 @@ class GlobalContainer:
             
             word_keys.append(word_key)
             
-        exercise = self.get_exercise(word_keys, 
-                                       exercise_type,
-                                       current_language,
-                                       current_level)
+        exercise_id = self.get_exercise_id(word_keys, 
+                                            exercise_type,
+                                            current_language,
+                                            current_level)
+        
+        if not exercise_id:
+            print(f"Failed to get exercise ID for user {user_id}.")
+            return None, False
+        
+        print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
-        print(f"Generated new exercise for user {user_id}: {exercise}.")
+        exercise = self.exercises_by_id_collection.find_one({"exercise_id": exercise_id})
+
+        if not exercise:
+            print(f"Exercise ID '{exercise_id}' not found in the database.")
+            return None, False
 
         return exercise, True
     
