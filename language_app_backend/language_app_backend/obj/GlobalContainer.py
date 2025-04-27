@@ -1087,6 +1087,19 @@ class GlobalContainer:
         if not exercise_id or not answer:
             return False, "Missing exercise_id or answer."
         
+        # get current user exercise
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False, "User not found in the database."
+        
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
+
+        if not last_created_exercise_id == exercise_id:
+            print(f"Exercise ID '{exercise_id}' does not match user's last created exercise ID '{last_created_exercise_id}'.")
+            return False, "Exercise ID does not match user's last created exercise ID."
+        
         # Validate the exercise_id and answer
         if not answer.isdigit():
             return False, "Answer must be a digit."
