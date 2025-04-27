@@ -149,14 +149,6 @@ def app_settings(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    # check if language is set
-    data = request.GET
-    if not data:
-        return redirect('select_language')
-    language = data.get("language")
-    if not language:
-        return redirect('select_language')
-    
     global_container = get_global_container()
 
     ######################
