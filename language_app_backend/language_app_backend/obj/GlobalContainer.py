@@ -1296,6 +1296,7 @@ class GlobalContainer:
         while len(self.create_exercise_threads) > MAX_CONCURRENT_EXERCISE_CREATIONS:
             # wait for a thread to finish
             time.sleep(1)
+            print(f"Waiting for a thread to finish. Current threads: {len(self.create_exercise_threads)}.")
             for thread in self.create_exercise_threads:
                 if not thread.is_alive():
                     self.create_exercise_threads.remove(thread)

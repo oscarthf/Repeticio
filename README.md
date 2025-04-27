@@ -6,7 +6,7 @@
 ## Stack:
 
 ```
-Django/Gunicorn server hosted using Digital Ocean App Platform
+Heroku style django/gunicorn/whitenoise server hosted using Digital Ocean App Platform
 MongoDB Atlas as database
 Google login
 Stripe payments

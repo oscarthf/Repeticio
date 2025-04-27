@@ -52,7 +52,7 @@ function get_created_exercise() {
             if (response.success) {
                 // Update the player with the new exercise
                 if (response.exercise == null) {
-                    console.error("No exercise data received from server.");
+                    console.log("Still processing.");
                     // try again after 30 seconds
                     setTimeout(function() {
                         get_created_exercise();
