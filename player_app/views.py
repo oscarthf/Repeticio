@@ -232,7 +232,7 @@ def select_language(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
-def get_new_exercise(request):
+def get_created_exercise(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "User not authenticated"}, status=401)
     user_id = request.user.email
@@ -249,15 +249,42 @@ def get_new_exercise(request):
 
     ######################
 
-    (new_exercise,
-     success) = global_container.get_new_exercise(user_id)
+    (exercise, success) = global_container.get_created_exercise(user_id)
+    
+    if not success:
+        return JsonResponse({"error": "Failed to get created exercise"}, status=500)
+    
+    del exercise["criteria"] # remove the answer from the response
+    
+    return JsonResponse({"success": True,
+                         "exercise": exercise}, status=200)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def create_new_exercise(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "User not authenticated"}, status=401)
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+
+    ######################
+
+    is_subscribed = check_subscription_pipeline(global_container, user_id)
+
+    if not is_subscribed:
+        return JsonResponse({"error": "User not subscribed"}, status=403)
+
+    ######################
+
+    success = global_container.create_new_exercise(user_id)
     
     if not success:
         return JsonResponse({"error": "Failed to get new exercise"}, status=500)
     
-    del new_exercise["criteria"]
-
-    return JsonResponse(new_exercise, status=200)
+    return JsonResponse({"success": True,
+                         "message": "A new exercise is being created."}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -284,7 +311,7 @@ def get_user_object(request):
         return JsonResponse({"error": "Failed to get user object"}, status=500)
     
     return JsonResponse({"success": True,
-                         "exercise": user_object}, status=200)
+                         "user": user_object}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

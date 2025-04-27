@@ -87,6 +87,7 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "current_language": language,
         "subscription_status": False,
         "last_time_checked_subscription": 0,
+        "last_created_exercise_id": "",
         "languages": {
             language: {
                 "current_level": 0,
@@ -1215,8 +1216,35 @@ class GlobalContainer:
             )
             print(f"Updated word ID '{word_key}' for user {user_id}.")
 
-    def get_new_exercise(self,
-                          user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
+    def get_created_exercise(self,
+                             user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
+        
+        """
+        Get the created exercise for the user from the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return None, False
+        
+        last_created_exercise_id = user.get("last_created_exercise_id", None)
+
+        if not last_created_exercise_id:
+            print(f"User {user_id} has no last created exercise ID.")
+            return None, False
+
+        exercise = self.exercises_collection.find_one({"exercise_id": last_created_exercise_id})
+
+        if not exercise:
+            print(f"Exercise ID '{last_created_exercise_id}' not found in the database.")
+            return None, False
+
+        return exercise, True
+    
+    def create_new_exercise(self,
+                            user_id) -> bool:
         
         """
         Get a new exercise for the user from the database.
@@ -1226,17 +1254,25 @@ class GlobalContainer:
 
         if not user:
             print(f"User {user_id} not found in the database.")
-            return None, False
+            return False
+        
+        # set last_created_exercise_id to ""
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "last_created_exercise_id": ""
+            }}
+        )
 
         current_language = user.get("current_language", None)
         if current_language not in SUPPORTED_LANGUAGES:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
-            return None, False
+            return False
         
         current_level = user.get("languages", {}).get(current_language, {}).get("current_level", None)
         if current_level is None:
             print(f"No current level found for user {user_id}.")
-            return None, False
+            return False
         
         number_of_words_needed = 2
 
@@ -1251,7 +1287,7 @@ class GlobalContainer:
             exercise_type = f"2_{exercise_index}"
         else:
             print(f"Invalid number of words needed: {number_of_words_needed}.")
-            return None, False
+            return False
         
         word_keys = []
 
@@ -1262,7 +1298,7 @@ class GlobalContainer:
             
             if not success:
                 print(f"Failed to get next word for user {user_id}.")
-                return None, False
+                return False
             
             word_keys.append(word_key)
             
@@ -1273,17 +1309,17 @@ class GlobalContainer:
         
         if not exercise_id:
             print(f"Failed to get exercise ID for user {user_id}.")
-            return None, False
+            return False
         
         print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
-        exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
+        # exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
 
-        if not exercise:
-            print(f"Exercise ID '{exercise_id}' not found in the database.")
-            return None, False
+        # if not exercise:
+        #     print(f"Exercise ID '{exercise_id}' not found in the database.")
+        #     return False
 
-        return exercise, True
+        return True
     
     def apply_thumbs_up_or_down(self,
                                  user_id,

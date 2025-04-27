@@ -1,5 +1,6 @@
 
-// let get_new_exercise_url = "{% url 'get_new_exercise' %}";
+// let create_new_exercise_url = "{% url 'create_new_exercise' %}";
+// let get_created_exercise_url = "{% url 'get_created_exercise' %}";
 // let submit_answer_url = "{% url 'submit_answer' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
@@ -33,12 +34,42 @@ function init_player_wrapper() {
     GLOBALS.player_wrapper.innerHTML = "<p>Player content goes here...</p>";
 }
 
+function get_created_exercise() {
+    console.log("Fetching created exercise...");
+
+    if (GLOBALS.current_exercise_id != null) {
+        console.log("Current exercise ID is already set. No need to fetch a new one.");
+        return;
+    }
+
+    var url = get_created_exercise_url;
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                // Update the player with the new exercise
+                if (response.exercise == null) {
+                    console.error("No exercise data received from server.");
+                    // try again after 30 seconds
+                    setTimeout(function() {
+                        get_created_exercise();
+                    }, 30000); // 30 seconds
+                } else {
+                    set_new_exercise(response.exercise);
+                    console.log("Exercise fetched successfully");
+                }
+            } else {
+                console.error("Error fetching exercise: " + response.error);
+
+
 function main_action() {
     
     console.log("Main action triggered.");
 
     if (GLOBALS.current_exercise_id == null) {
-        var url = get_new_exercise_url;
+        var url = create_new_exercise_url;
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.onreadystatechange = function() {
@@ -46,7 +77,12 @@ function main_action() {
                 var response = JSON.parse(xhr.responseText);
                 if (response.success) {
                     // Update the player with the new exercise
-                    set_new_exercise(response.exercise);
+                    // set_new_exercise(response.exercise);
+                    console.log("New exercise created:", response.message);
+                    // set timeout for 30 seconds
+                    setTimeout(function() {
+                        get_created_exercise();
+                    }, 30000); // 30 seconds
                 } else {
                     console.error("Error fetching new exercise: " + response.error);
                 }
