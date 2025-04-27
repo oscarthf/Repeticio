@@ -73,11 +73,18 @@ function get_created_exercise() {
     xhr.send();
 }
 
+function show_loading_message(message) {
+    console.log(message);
+    GLOBALS.player_wrapper.innerHTML = "<p>" + message + "</p>";
+    GLOBALS.main_action_button.disabled = true; // Disable the button while loading
+}
+
 function main_action() {
     
     console.log("Main action triggered.");
 
     if (GLOBALS.current_exercise_id == null) {
+        show_loading_message("Creating new exercise...");
         var url = create_new_exercise_url;
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
@@ -167,6 +174,10 @@ function set_new_exercise(exercise) {
     console.log("New exercise received:", exercise);
     GLOBALS.current_exercise = exercise;
     GLOBALS.current_exercise_id = exercise.exercise_id;
+    GLOBALS.current_exercise_results = null; // Reset results for the new exercise
+    GLOBALS.last_exercise = null; // Reset last exercise
+    GLOBALS.last_exercise_id = null; // Reset last exercise ID
+    GLOBALS.main_action_button.disabled = false; // Enable the button after setting the exercise
     render_current_exercise();
 }
 
