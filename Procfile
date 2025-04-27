@@ -1,1 +1,1 @@
-web: gunicorn --worker-tmp-dir /dev/shm --config gunicorn_config.py language_app.wsgi:application
+web: gunicorn --config gunicorn_config.py language_app.wsgi:application --bind 0.0.0.0:8000
