@@ -1078,32 +1078,45 @@ class GlobalContainer:
     def submit_answer(self,
                       user_id,
                       exercise_id,
-                      answer) -> Tuple[bool, str]:
+                      answer) -> Tuple[bool, str, bool]:
         
         """
         Submit the answer to the exercise in the database.
         """
 
         if not exercise_id or not answer:
-            return False, "Missing exercise_id or answer."
+            return False, "Missing exercise_id or answer.", False
+        
+        # get current user exercise
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False, "User not found in the database.", False
+        
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
+
+        if not last_created_exercise_id == exercise_id:
+            print(f"Exercise ID '{exercise_id}' does not match user's last created exercise ID '{last_created_exercise_id}'.")
+            return False, "Exercise ID does not match user's last created exercise ID.", False
         
         # Validate the exercise_id and answer
         if not answer.isdigit():
-            return False, "Answer must be a digit."
+            return False, "Answer must be a digit.", False
 
         answer = int(answer)
 
         if not answer >= 0 and answer <= 5:
-            return False, "Answer must be between 0 and 5."
+            return False, "Answer must be between 0 and 5.", False
 
         if not isinstance(exercise_id, str):
-            return False, "exercise_id must be a string."
+            return False, "exercise_id must be a string.", False
         
         # check if exercise_id is a valid UUID
         try:
             uuid.UUID(exercise_id, version=4)
         except ValueError:
-            return False, "exercise_id is not a valid UUID."
+            return False, "exercise_id is not a valid UUID.", False
         
         ##########################################################################
 
@@ -1112,19 +1125,19 @@ class GlobalContainer:
 
         if not exercise:
             print(f"Exercise ID '{exercise_id}' not found in the database.")
-            return False, "Exercise ID not found in the database."
+            return False, "Exercise ID not found in the database.", False
         
         exercise_criteria = exercise.get("criteria", None)
 
         if exercise_criteria is None:
             print(f"Exercise ID '{exercise_id}' has no criteria.")
-            return False, "Exercise ID has no criteria."
+            return False, "Exercise ID has no criteria.", False
         
         word_keys = exercise.get("word_keys", None)
 
         if word_keys is None:
             print(f"Exercise ID '{exercise_id}' has no word keys.")
-            return False, "Exercise ID has no word keys."
+            return False, "Exercise ID has no word keys.", False
         
         was_correct = True
 
@@ -1140,10 +1153,12 @@ class GlobalContainer:
             self.increase_user_xp(user_id, 1)
 
         if was_correct:
-            return True, "Correct answer."
+            message = "Correct answer."
         else:
-            return False, "Wrong answer."
-        
+            message = f"Wrong answer. The correct answer was {exercise_criteria}."
+            
+        return True, message, was_correct
+
     def increase_user_xp(self,
                             user_id,
                             xp) -> bool:

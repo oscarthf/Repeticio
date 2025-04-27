@@ -374,15 +374,18 @@ def submit_answer(request):
     if not exercise_id or not answer:
         return JsonResponse({"error": "Missing exercise_id or answer"}, status=400)
 
-    (success, message) = global_container.submit_answer(user_id, 
-                                                        exercise_id,
-                                                        answer)
+    (success, 
+     message,
+     correct) = global_container.submit_answer(user_id, 
+                                                exercise_id,
+                                                answer)
     
     if not success:
         return JsonResponse({"error": message}, status=500)
     
     return JsonResponse({"success": True,
-                         "message": message}, status=200)
+                         "message": message,
+                         "correct": correct}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

@@ -189,6 +189,29 @@ function set_new_exercise(exercise) {
     render_current_exercise();
 }
 
+function render_results() {
+    console.log("Rendering results for exercise ID:", GLOBALS.current_exercise_id);
+        
+    if (GLOBALS.current_exercise_results == null) {
+        console.error("No results to render.");
+        return;
+    }
+
+    var results_html = "<div class='results'>";
+    results_html += "<h3>Results for Exercise ID: " + GLOBALS.current_exercise_id + "</h3>";
+    
+    var result = GLOBALS.current_exercise_results;
+    results_html += "<div class='result'>";
+    results_html += "<p>" + result.message + "</p>";
+    results_html += "<p>Was correct: " + result.correct + "</p>";
+    results_html += "</div>";
+    
+    results_html += "</div>";
+    
+    GLOBALS.player_wrapper.innerHTML += results_html;
+}
+
+
 function submit_answer(index) {
 
     if (GLOBALS.current_exercise_id == null) {
@@ -205,10 +228,8 @@ function submit_answer(index) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 console.log("Answer submitted successfully:", response.message);
-                // Update the current exercise results
-                GLOBALS.current_exercise_results = response.results;
-                // Optionally, you can render the results or update the UI
-                render_current_exercise();
+                GLOBALS.current_exercise_results = response;
+                render_results();
             } else {
                 console.error("Error submitting answer: " + response.error);
             }
