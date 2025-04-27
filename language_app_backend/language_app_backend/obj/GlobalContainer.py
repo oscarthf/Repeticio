@@ -20,7 +20,8 @@ from ..util.constants import (SUPPORTED_LANGUAGES,
                               MIN_THUMB_VOLUME,
                               MAX_WORD_LENGTH,
                               VOCABULARY_REVISION_ITERATIONS,
-                              VOCABULARY_REVISION_INTERVAL)
+                              VOCABULARY_REVISION_INTERVAL,
+                              MAX_CONCURRENT_EXERCISE_CREATIONS)
 
 def next_word(word_keys, 
               word_scores, 
@@ -88,6 +89,7 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "last_created_exercise_id": "",
+        "last_created_exercise_time": 0,
         "languages": {
             language: {
                 "current_level": 0,
@@ -164,6 +166,7 @@ class GlobalContainer:
         "vocabulary_background_thread",
         "clean_up_background_thread",
         "update_server_heartbeat_thread",
+        "create_exercise_threads",
         
         "is_running",
     ]
@@ -193,6 +196,7 @@ class GlobalContainer:
         self.vocabulary_background_thread = None
         self.clean_up_background_thread = None
         self.update_server_heartbeat_thread = None
+        self.create_exercise_threads = []
 
         self.is_running = True
 
@@ -1229,11 +1233,15 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return None, False
         
-        last_created_exercise_id = user.get("last_created_exercise_id", None)
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
 
         if not last_created_exercise_id:
             print(f"User {user_id} has no last created exercise ID.")
             return None, False
+        
+        if last_created_exercise_id == "PROCESSING":
+            print(f"User {user_id} is currently creating a new exercise.")
+            return None, True# also return True to indicate that the user is currently creating a new exercise
 
         exercise = self.exercises_collection.find_one({"exercise_id": last_created_exercise_id})
 
@@ -1256,13 +1264,49 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return False
         
-        # set last_created_exercise_id to ""
+        last_created_exercise_id = user.get("last_created_exercise_id", "")
+
+        if last_created_exercise_id == "PROCESSING":
+            
+            last_created_exercise_time = user.get("last_created_exercise_time", 0)
+
+            current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+            if current_time - last_created_exercise_time < 60:  # 1 minute
+                print(f"User {user_id} is already creating a new exercise.")
+                return False
+        
         self.users_collection.update_one(
             {"user_id": user_id},
             {"$set": {
-                "last_created_exercise_id": ""
+                "last_created_exercise_id": "PROCESSING",
+                "last_created_exercise_time": int(datetime.datetime.now(datetime.timezone.utc).timestamp())
             }}
         )
+
+        ##################
+
+        while len(self.create_exercise_threads) > MAX_CONCURRENT_EXERCISE_CREATIONS:
+            # wait for a thread to finish
+            time.sleep(1)
+            for thread in self.create_exercise_threads:
+                if not thread.is_alive():
+                    self.create_exercise_threads.remove(thread)
+
+        create_exercise_thread = threading.Thread(target=self.create_new_exercise_inner,
+                                                    args=(user_id, user),
+                                                    daemon=True)
+        create_exercise_thread.start()
+        self.create_exercise_threads.append(create_exercise_thread)
+
+        return True
+
+    def create_new_exercise_inner(self, 
+                                  user_id,
+                                  user) -> bool:
+        
+        """
+        Create a new exercise for the user.
+        """
 
         current_language = user.get("current_language", None)
         if current_language not in SUPPORTED_LANGUAGES:
@@ -1313,11 +1357,13 @@ class GlobalContainer:
         
         print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
-        # exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
-
-        # if not exercise:
-        #     print(f"Exercise ID '{exercise_id}' not found in the database.")
-        #     return False
+        self.users_collection.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "last_created_exercise_id": exercise_id
+            }}
+        )
+        print(f"User {user_id}'s last created exercise ID set to '{exercise_id}'.")
 
         return True
     

@@ -249,15 +249,19 @@ def get_created_exercise(request):
 
     ######################
 
-    (exercise, success) = global_container.get_created_exercise(user_id)
+    (exercise, 
+     success) = global_container.get_created_exercise(user_id)
     
     if not success:
         return JsonResponse({"error": "Failed to get created exercise"}, status=500)
     
-    del exercise["criteria"] # remove the answer from the response
-    
-    return JsonResponse({"success": True,
-                         "exercise": exercise}, status=200)
+    if exercise is not None and "criteria" in exercise:
+        del exercise["criteria"] # remove the answer from the response
+            
+        return JsonResponse({"success": True,
+                            "exercise": exercise}, status=200)
+    else:
+        return JsonResponse({"success": True}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

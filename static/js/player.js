@@ -62,7 +62,15 @@ function get_created_exercise() {
                 }
             } else {
                 console.error("Error fetching exercise: " + response.error);
-
+                // try again after 30 seconds
+                setTimeout(function() {
+                    get_created_exercise();
+                }, 30000); // 30 seconds
+            }
+        }
+    }
+    xhr.send();
+}
 
 function main_action() {
     
@@ -76,8 +84,6 @@ function main_action() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 var response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                    // Update the player with the new exercise
-                    // set_new_exercise(response.exercise);
                     console.log("New exercise created:", response.message);
                     // set timeout for 30 seconds
                     setTimeout(function() {
