@@ -176,11 +176,11 @@ class GlobalContainer:
         self.vocabulary_background_thread = None
         self.clean_up_background_thread = None
 
+        self.is_running = True
+
         # Create indexes on commonly queried fields
         self.create_indexes()
         self.start_background_threads()
-
-        self.is_running = True
 
     def __del__(self) -> None:
         """
