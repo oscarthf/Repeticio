@@ -177,7 +177,7 @@ function render_current_exercise() {
 
     // thumbs up and thumbs down buttons
 
-    exercise_html += "<div class='thumbs_buttons'>";
+    exercise_html += "<div id='thumbs_buttons'>";
     exercise_html += "<button class='thumbs_up' onclick='apply_thumbs_up(true)'>👍</button>";
     exercise_html += "<button class='thumbs_down' onclick='apply_thumbs_up(false)'>👎</button>";
     exercise_html += "</div>";
@@ -251,6 +251,15 @@ function apply_thumbs_up(is_positive) {
         }
     }
     xhr.send();
+}
+
+function render_thumbs_up_results(is_positive) {
+    console.log("Rendering thumbs up results:", is_positive);
+
+    var thumbs_buttons = D.getElementById("thumbs_buttons");
+
+    thumbs_buttons.innerHTML = "<p>Thank you for your feedback!</p>";
+
 }
 
 function submit_answer(index) {
