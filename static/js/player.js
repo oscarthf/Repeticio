@@ -229,6 +229,10 @@ function submit_answer(index) {
             if (response.success) {
                 console.log("Answer submitted successfully:", response.message);
                 GLOBALS.current_exercise_results = response;
+                GLOBALS.last_exercise = GLOBALS.current_exercise; // Save the last exercise
+                GLOBALS.last_exercise_id = GLOBALS.current_exercise_id; // Save the last exercise ID
+                GLOBALS.current_exercise = null; // Reset current exercise
+                GLOBALS.current_exercise_id = null; // Reset current exercise ID after submission
                 render_results();
             } else {
                 console.error("Error submitting answer: " + response.error);
