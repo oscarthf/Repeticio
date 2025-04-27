@@ -994,10 +994,18 @@ class GlobalContainer:
             return None
         
         exercise_id_list = []
-        exercise = self.llm.create_exercise(word_values,
-                                            exercise_type,
-                                            current_language,
-                                            current_level)
+        num_tries = 0
+        while num_tries < 10:
+            num_tries += 1
+            try:
+                exercise = self.llm.create_exercise(word_values,
+                                                    exercise_type,
+                                                    current_language,
+                                                    current_level)
+                break
+            except Exception as e:
+                print(f"Error creating exercise for key '{exercise_key}': {e}. Retrying... (Probably OpenAI API rate limit exceeded)")
+                time.sleep(10)
         
         if exercise is None:
             print(f"Failed to create exercise for key '{exercise_key}'.")

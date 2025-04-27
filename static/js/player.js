@@ -8,6 +8,7 @@
 let D = document;
 
 function Globals() {
+    this.UPDATE_INTERVAL = 2000; // 2 seconds
     this.player_wrapper = D.getElementById("player_wrapper");
     this.main_action_button = D.getElementById("main_action_button");
     this.current_exercise_id = null;
@@ -55,7 +56,7 @@ function get_created_exercise() {
                     // try again after 30 seconds
                     setTimeout(function() {
                         get_created_exercise();
-                    }, 30000); // 30 seconds
+                    }, UPDATE_INTERVAL); // 30 seconds
                 } else {
                     set_new_exercise(response.exercise);
                     console.log("Exercise fetched successfully");
@@ -65,7 +66,7 @@ function get_created_exercise() {
                 // try again after 30 seconds
                 setTimeout(function() {
                     get_created_exercise();
-                }, 30000); // 30 seconds
+                }, UPDATE_INTERVAL); // 30 seconds
             }
         }
     }
@@ -88,7 +89,7 @@ function main_action() {
                     // set timeout for 30 seconds
                     setTimeout(function() {
                         get_created_exercise();
-                    }, 30000); // 30 seconds
+                    }, UPDATE_INTERVAL); // 30 seconds
                 } else {
                     console.error("Error fetching new exercise: " + response.error);
                 }
