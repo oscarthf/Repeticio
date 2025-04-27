@@ -993,6 +993,7 @@ class GlobalContainer:
             print(f"Not all word keys found in the database for key '{exercise_key}'.")
             return None
         
+        exercise = None
         exercise_id_list = []
         num_tries = 0
         while num_tries < 10:
