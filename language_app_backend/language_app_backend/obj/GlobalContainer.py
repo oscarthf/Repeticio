@@ -82,7 +82,7 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "languages": {
-            "language": {
+            language: {
                 "current_level": 0,
             }
         }
@@ -951,7 +951,7 @@ class GlobalContainer:
         
         if was_correct:
             self.increase_user_xp(user_id, 1)
-        
+
         if was_correct:
             return True, "Correct answer."
         else:
@@ -1218,6 +1218,10 @@ class GlobalContainer:
         if current_language not in SUPPORTED_LANGUAGES:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
             return None, False
+        
+        unlock_word_response = self.check_if_should_unlock_new_word(user_id)
+
+        print(f"Unlock word response: {unlock_word_response}.")
         
         # Get the words list from the user document
         # words = user.get("words", [])

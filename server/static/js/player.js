@@ -7,6 +7,7 @@ let D = document;
 
 function Globals() {
     this.player_wrapper = D.getElementById("player_wrapper");
+    this.main_action_button = D.getElementById("main_action_button");
     this.current_exercise_id = null;
     this.current_exercise = null;
     this.current_exercise_results = null;
@@ -17,7 +18,14 @@ function Globals() {
 GLOBALS = new Globals();
 
 function init() {
+    init_main_action_button();
     init_player_wrapper();
+}
+
+function init_main_action_button() {
+    GLOBALS.main_action_button.addEventListener("click", function() {
+        main_action();
+    });
 }
 
 function init_player_wrapper() {
@@ -58,8 +66,56 @@ function render_current_exercise() {
         console.error("No current exercise to render.");
         return;
     }
+
+    var exercise_html = "<div class='exercise'>";
+
+    var initial_strings = GLOBALS.current_exercise.initial_strings;
     
-    // ...
+    if (initial_strings == null || initial_strings.length == 0) {
+        console.error("No initial strings provided for the exercise.");
+        return;
+    }
+
+    var middle_strings = GLOBALS.current_exercise.middle_strings;
+
+    if (middle_strings == null || middle_strings.length == 0) {
+        console.error("No middle strings provided for the exercise.");
+        return;
+    }
+
+    var final_strings = GLOBALS.current_exercise.final_strings;
+
+    if (final_strings == null || final_strings.length == 0) {
+        console.error("No final strings provided for the exercise.");
+        return;
+    }
+
+    //
+
+    exercise_html += "<div class='initial_strings'>";
+    for (var i = 0; i < initial_strings.length; i++) {
+
+        exercise_html += "<div class='initial_string'>" + initial_strings[i] + "</div>";
+
+    }
+    exercise_html += "</div>";
+
+    exercise_html += "<div class='middle_strings'>";
+
+    for (var i = 0; i < middle_strings.length; i++) {
+        exercise_html += "<div class='middle_string'>" + middle_strings[i] + "</div>";
+    }
+    exercise_html += "</div>";
+
+    exercise_html += "<div class='final_strings'>";
+    for (var i = 0; i < final_strings.length; i++) {
+        exercise_html += "<div class='final_string' onclick='submit_answer(" + i + ")'>" + final_strings[i] + "</div>";
+    }
+    exercise_html += "</div>";
+
+    exercise_html += "</div>";
+
+    GLOBALS.player_wrapper.innerHTML = exercise_html;
 
 }
 

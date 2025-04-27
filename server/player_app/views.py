@@ -143,7 +143,7 @@ def customer_portal(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
-def settings(request):
+def app_settings(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
@@ -255,6 +255,8 @@ def get_new_exercise(request):
     if not success:
         return JsonResponse({"error": "Failed to get new exercise"}, status=500)
     
+    del new_exercise["criteria"]
+
     return JsonResponse(new_exercise, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)

@@ -11,8 +11,12 @@ urlpatterns = [
     path('social-auth/', include('social_django.urls', namespace='social')),
 
     path('', views.home, name='home'),
-    path('settings', views.settings, name='settings'),
+    path('settings', views.app_settings, name='settings'),
     path('select_language', views.select_language, name='select_language'),
+    path('get_new_exercise', views.get_new_exercise, name='get_new_exercise'),
+    path('get_user_object', views.get_user_object, name='get_user_object'),
+    path('submit_answer', views.submit_answer, name='submit_answer'),
+    path('get_user_words', views.get_user_words, name='get_user_words'),
 
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
     path('stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
