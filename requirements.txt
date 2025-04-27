@@ -10,4 +10,5 @@ pymongo==4.12.0
 django-ratelimit==4.1.0
 setuptools==67.6.1
 gunicorn==20.0.4
+whitenoise==6.9.0
 -e ./language_app_backend
