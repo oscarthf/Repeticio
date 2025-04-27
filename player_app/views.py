@@ -76,6 +76,9 @@ def create_checkout_session(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
 
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return redirect('settings')
+
     # Create Stripe checkout session
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
@@ -127,9 +130,10 @@ def stripe_webhook(request):
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def customer_portal(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    # First find the customer (you could save customer_id after checkout, or fetch by email)
+    if DO_NOT_CHECK_SUBSCRIPTION:
+        return redirect('settings')
+
     customers = stripe.Customer.list(email=request.user.email).data
     if not customers:
         return redirect('settings')  # fallback if no customer found
