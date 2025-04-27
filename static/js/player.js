@@ -68,6 +68,12 @@ function get_created_exercise() {
                     get_created_exercise();
                 }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
             }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to fetch exercise. Status: " + xhr.status + ", Response: " + xhr.responseText);
+            // try again after 30 seconds
+            setTimeout(function() {
+                get_created_exercise();
+            }, GLOBALS.UPDATE_INTERVAL); // 30 seconds
         }
     }
     xhr.send();
@@ -100,6 +106,8 @@ function main_action() {
                 } else {
                     console.error("Error fetching new exercise: " + response.error);
                 }
+            } else if (xhr.readyState == 4) {
+                console.error("Failed to create new exercise. Status: " + xhr.status + ", Response: " + xhr.responseText);
             }
         };
         xhr.send();
@@ -210,6 +218,8 @@ function submit_answer(index) {
             } else {
                 console.error("Error submitting answer: " + response.error);
             }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to submit answer. Status: " + xhr.status + ", Response: " + xhr.responseText);
         }
     };
     xhr.send(data);
