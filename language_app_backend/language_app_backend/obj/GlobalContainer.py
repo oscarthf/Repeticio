@@ -35,8 +35,11 @@ def next_word(word_keys,
     assert len(word_keys) > 0, "No words available to select from."
 
     # adjusted score = (1 - score) * (1 + time_since_last_visit)
+    print(f"word_last_visited_times: {word_last_visited_times}")
+    print(f"word_scores: {word_scores}")
 
-    word_last_visited_times = [datetime.datetime.fromtimestamp(time, tz=datetime.timezone.utc) for time in word_last_visited_times]
+    word_last_visited_times = [datetime.datetime.fromtimestamp(times[-1], tz=datetime.timezone.utc) if len(times) > 0 else datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
+                               for times in word_last_visited_times ]
     current_time = datetime.datetime.now(datetime.timezone.utc)
 
     oldest_time = min(word_last_visited_times) if len(word_last_visited_times) else current_time
@@ -51,7 +54,10 @@ def next_word(word_keys,
     word_last_visited_times = np.array(word_last_visited_times) / 3600
     word_last_visited_times = word_last_visited_times / time_since_oldest_visit
 
+    word_scores = [scores[-1] if len(scores) > 0 else 0 for scores in word_scores]
+
     scores = np.array(word_scores)
+    # average along 1st axis
 
     adjusted_scores = (1 - scores) * (1 + word_last_visited_times) - 1
 
@@ -82,7 +88,7 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "languages": {
-            "language": {
+            language: {
                 "current_level": 0,
             }
         }
@@ -335,9 +341,35 @@ class GlobalContainer:
         Get the list of supported languages.
         """
 
-        languages = [f"{key}_{value}" for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
+        class Language:
+            def __init__(self, code, name):
+                self.name = name
+                self.code = code
+
+        languages = [Language(key, value) for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
 
         return languages
+    
+    def get_user_language(self,
+                            user_id) -> Optional[str]:
+        
+        """
+        Get the user's languages from the database.
+        """
+
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return None
+        
+        current_language = user.get("current_language", None)
+
+        if current_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_language}' for user {user_id}.")
+            return None
+        
+        return current_language
     
     def create_user_if_needed(self, 
                               user_id,
@@ -556,9 +588,7 @@ class GlobalContainer:
             print(f"No words found for user {user_id}.")
             return None
         
-        user_words_keys = [word["_id"] for word in user_words]
-
-        return user_words_keys
+        return user_words
         
     def check_if_should_unlock_new_word(self, 
                                         user_id) -> int:
@@ -588,7 +618,7 @@ class GlobalContainer:
 
         if words is None:
             print(f"No words found for user {user_id}.")
-            return -1
+            words = []
 
         locked_words = self.get_user_words(user_id, 
                                            current_language,
@@ -596,9 +626,10 @@ class GlobalContainer:
 
         if locked_words is None:
             print(f"No locked words found for user {user_id}.")
-            return -1
+            locked_words = []
 
         if not len(locked_words):
+
             print(f"No locked words found for user {user_id}.")
             # check if the user is at the max level
             current_level = language_data.get("current_level", 0)
@@ -629,9 +660,15 @@ class GlobalContainer:
             
             random_word_key = np.random.choice(this_level_word_keys_not_in_words)
 
-            self.add_word_to_locked_words(user_id,
-                                            random_word_key,
-                                            current_language)
+            (random_word, 
+             success) = self.add_word_to_locked_words(user_id,
+                                                        random_word_key,
+                                                        current_language)
+            if not success:
+                print(f"Failed to add word '{random_word_key}' to locked words for user {user_id}.")
+                return -1
+            
+            locked_words.append(random_word)
         
         if not len(words):
             unlocked_word = locked_words.pop(0)
@@ -650,7 +687,12 @@ class GlobalContainer:
         # count the number of words that need work
         needs_work_count = 0
         for word in words:
-            if word["last_scores"][-1] < 0.5:
+            last_scores = word.get("last_scores", [])
+            if not len(last_scores):
+                print(f"Word ID '{word['_id']}' has no last scores.")
+                continue
+            average_score = sum(last_scores) / len(last_scores)
+            if average_score < 0.5:
                 needs_work_count += 1
 
         percentage_needs_work = needs_work_count / len(words) * 100
@@ -925,7 +967,7 @@ class GlobalContainer:
         
         if was_correct:
             self.increase_user_xp(user_id, 1)
-        
+
         if was_correct:
             return True, "Correct answer."
         else:
@@ -1045,10 +1087,10 @@ class GlobalContainer:
             number_of_words_needed -= 1
 
         if number_of_words_needed == 1:
-            exercise_index = np.random.choice(ONE_BLANK_EXERCISE_PROMPTS)
+            exercise_index = np.random.randint(0, len(ONE_BLANK_EXERCISE_PROMPTS))
             exercise_type = f"1_{exercise_index}"
         elif number_of_words_needed == 2:
-            exercise_index = np.random.choice(TWO_BLANK_EXERCISE_PROMPTS)
+            exercise_index = np.random.randint(0, len(TWO_BLANK_EXERCISE_PROMPTS))
             exercise_type = f"2_{exercise_index}"
         else:
             print(f"Invalid number of words needed: {number_of_words_needed}.")
@@ -1159,10 +1201,10 @@ class GlobalContainer:
         """
         
         current_user_word = self.user_words_collection.find_one({"_id": word_key,
-                                                            "user_id": user_id})
+                                                                 "user_id": user_id})
         if current_user_word:
             print(f"Word ID '{word_key}' already exists in user {user_id}'s word list.")
-            return False
+            return None, False
 
         word_entry = empty_word_entry(word_key,
                                       user_id,
@@ -1176,6 +1218,8 @@ class GlobalContainer:
         )
         
         print(f"Word ID '{word_key}' added to user {user_id}'s word list.")
+
+        return word_entry, True
 
     def get_next_word(self, user_id) -> Tuple[Optional[str], bool]:
         """
@@ -1193,9 +1237,14 @@ class GlobalContainer:
             print(f"Unsupported language '{current_language}' for user {user_id}.")
             return None, False
         
-        # Get the words list from the user document
-        # words = user.get("words", [])
-        words = user.get("languages", {}).get(current_language, {}).get("words", None)
+        unlock_word_response = self.check_if_should_unlock_new_word(user_id)
+
+        print(f"Unlock word response: {unlock_word_response}.")
+        
+        words = self.get_user_words(user_id,
+                                    current_language,
+                                    False)
+        
         if words is None:
             print(f"No words found for user {user_id}.")
             return None, False

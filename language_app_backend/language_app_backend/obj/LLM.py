@@ -165,7 +165,7 @@ class LLM:
             "criteria": []
         }
 
-        exercise_index = exercise_type.split("_")[1]
+        exercise_index = int(exercise_type.split("_")[1])
 
         if len(word_values) == 1:
             query_input = ONE_BLANK_EXERCISE_PROMPTS[exercise_index]

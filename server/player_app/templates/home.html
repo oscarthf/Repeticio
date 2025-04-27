@@ -7,16 +7,17 @@
 
     
 
-    <div class="row">
-        <div class="col-sm-12 mb-3">
-            <h4 class="text-center">Welcome {{ user.username }}</h4>
-        </div>
+    <div class="main_content">
+        <h4 class="main_title" id="player_title">Welcome {{ user.username }}</h4>
+        <div id="player_wrapper"></div>
+        <button id="main_action_button">Start</button>
     </div>
 
     <script src="{% static 'js/common.js' %}"></script>
     
     <script>
         
+        let base_url = "{{ request.scheme }}://{{ request.get_host }}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
 

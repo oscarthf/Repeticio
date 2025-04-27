@@ -143,7 +143,7 @@ def customer_portal(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
-def settings(request):
+def app_settings(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
@@ -178,16 +178,22 @@ def home(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    # check if language is set
-    data = request.GET
-    if not data:
-        return redirect('select_language')
-    language = data.get("language")
-    if not language:
-        return redirect('select_language')
     
     global_container = get_global_container()
     
+    # check if language is set
+    language = global_container.get_user_language(user_id)
+
+    if language is None:
+
+        data = request.GET
+        if not data:
+            return redirect('select_language')
+        
+        language = data.get("language")
+        if not language:
+            return redirect('select_language')
+        
     ######################
 
     success = global_container.create_user_if_needed(user_id,
@@ -249,6 +255,8 @@ def get_new_exercise(request):
     if not success:
         return JsonResponse({"error": "Failed to get new exercise"}, status=500)
     
+    del new_exercise["criteria"]
+
     return JsonResponse(new_exercise, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
@@ -275,7 +283,8 @@ def get_user_object(request):
     if user_object is None:
         return JsonResponse({"error": "Failed to get user object"}, status=500)
     
-    return JsonResponse(user_object, status=200)
+    return JsonResponse({"success": True,
+                         "exercise": user_object}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -313,7 +322,8 @@ def submit_answer(request):
     if not success:
         return JsonResponse({"error": message}, status=500)
     
-    return JsonResponse({"message": message}, status=200)
+    return JsonResponse({"success": True,
+                         "message": message}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
