@@ -153,6 +153,7 @@ class GlobalContainer:
         "settings_collection",
         "words_collection",
         "user_words_collection",
+        "user_thumbs_collection",
         "users_collection",
         "exercises_id_lists_collection",
         "exercises_collection",
@@ -184,6 +185,7 @@ class GlobalContainer:
         self.settings_collection = self.db["settings"]
         self.words_collection = self.db["words"]
         self.user_words_collection = self.db["user_words"]
+        self.user_thumbs_collection = self.db["user_thumbs"]
         self.users_collection = self.db["users"]
         self.exercises_id_lists_collection = self.db["exercise_id_lists"]
         self.exercises_collection = self.db["exercises"]
@@ -384,9 +386,10 @@ class GlobalContainer:
         
         self.servers_collection.create_index([('server_id', PY_MONGO_ASCENDING)], unique=True)
         self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
-        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
+        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING)], unique=True)
+        self.user_thumbs_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('exercise_id', PY_MONGO_ASCENDING)], unique=True)
         self.users_collection.create_index([('user_id', PY_MONGO_ASCENDING)], unique=True)
-        self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)])
+        self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
 
         ##################################################################
 
@@ -1422,6 +1425,16 @@ class GlobalContainer:
             print(f"Exercise ID '{exercise_id}' is not a valid UUID for user {user_id}.")
             return False
         
+        # check if user already has thumbs up or down for this exercise
+        user_exercise_thumbs_up_or_down = self.user_exercise_thumbs_up_or_down_collection.find_one({
+            "user_id": user_id,
+            "exercise_id": exercise_id
+        })
+
+        if user_exercise_thumbs_up_or_down:
+            print(f"User {user_id} already has thumbs up or down for exercise ID '{exercise_id}'.")
+            return False
+        
         # validate thumbs_up
         if not isinstance(thumbs_up, bool):
             print(f"Invalid thumbs_up value '{thumbs_up}' for user {user_id}.")
@@ -1464,6 +1477,13 @@ class GlobalContainer:
                 }},
                 upsert=True
             )
+
+        # add to user exercise thumbs up or down collection
+        self.user_exercise_thumbs_up_or_down_collection.insert_one({
+            "user_id": user_id,
+            "exercise_id": exercise_id,
+            "thumbs_up": thumbs_up
+        })
 
         print(f"Applied thumbs {'up' if thumbs_up else 'down'} to exercise {exercise_id} for user {user_id}.")
 
