@@ -146,7 +146,7 @@ if DEBUG:
         BASE_DIR / "static",
     ]
 else:
-    STATIC_ROOT = '/app/server/static'
+    STATIC_ROOT = '/app/static'
 
 STATIC_URL = '/static/'
 
