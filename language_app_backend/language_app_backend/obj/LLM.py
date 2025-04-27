@@ -371,7 +371,7 @@ class LLM:
             return None
 
         for level in json_data[language]:
-            if len(json_data[language][level]) != 100:
+            if len(json_data[language][level]) < 5:
                 print(f"Invalid number of words in level {level}: {len(json_data[language][level])}")
                 return None
             

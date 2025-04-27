@@ -640,6 +640,11 @@ class GlobalContainer:
             
             # add next set of words to locked words
             this_level_words = self.get_words_for_level(current_language, current_level)
+
+            if not this_level_words or not len(this_level_words):
+                print(f"No words found for level {current_level} in language '{current_language}'.")
+                return -1
+
             this_level_word_keys = [word["_id"] for word in this_level_words]
 
             word_keys = [word["_id"] for word in words]
