@@ -25,10 +25,10 @@ WORKDIR /app/language_app_backend
 RUN python -m pip install .
 
 # Copy the server package into the container
-COPY server /app/server
+COPY server /app
 
 # Set the working directory to the server package
-WORKDIR /app/server
+WORKDIR /app
 
 # Run using startup.bash
 CMD ["bash", "startup.bash"]
