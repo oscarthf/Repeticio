@@ -18,6 +18,7 @@ GLOBALS = new Globals();
 
 function init() {
     get_user_object();
+    get_user_words();
     init_settings_wrapper();
 }
 
