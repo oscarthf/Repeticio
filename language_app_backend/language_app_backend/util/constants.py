@@ -18,6 +18,8 @@ OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
 CHECK_SUBSCRIPTION_INTERVAL = 10 * 60  # 10 minutes
 DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
 
+NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE = 5
+
 SUPPORTED_LANGUAGES = [
     # "en",  # English
     "es",  # Spanish

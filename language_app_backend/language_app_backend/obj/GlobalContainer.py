@@ -10,9 +10,8 @@ import numpy as np
 
 from pymongo import ASCENDING as PY_MONGO_ASCENDING
 
-from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
-from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
-from ..util.constants import (SUPPORTED_LANGUAGES,
+from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
+                              SUPPORTED_LANGUAGES,
                               REAL_LANGUAGE_NAMES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
@@ -1048,7 +1047,7 @@ class GlobalContainer:
         exercise = None
         exercise_id_list = []
         num_tries = 0
-        while num_tries < 10:
+        while num_tries < NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE:
             num_tries += 1
             try:
                 exercise = self.llm.create_exercise(word_values,

@@ -20,9 +20,8 @@ Instructions:
 Here are 3 examples:
 """
 
-inspiration_exercises = [
-"""
-Variation 1:
+inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
+
 {
     "word_values": ["ir"],
     "initial_strings": [
@@ -38,9 +37,8 @@ Variation 1:
         "d) vas"
     ],
     "criteria": "a"
-}
+}, 
 
-Variation 2:
 {
     "word_values": ["leer"],
     "initial_strings": [
@@ -57,9 +55,8 @@ Variation 2:
         "e) lee",
     ],
     "criteria": "e"
-}
+},
 
-Variation 3:
 {
     "word_values": ["correr"],
     "initial_strings": [
@@ -76,5 +73,5 @@ Variation 3:
     ],
     "criteria": "b"
 }
-"""
+
 ]

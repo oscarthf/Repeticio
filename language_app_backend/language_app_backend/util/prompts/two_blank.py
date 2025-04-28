@@ -20,9 +20,7 @@ Instructions:
 Here are 3 examples:
 """
 
-inspiration_exercises = [
-"""
-Variation 1:
+inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
 {
     "word_values": ["muy", "feliz"],
     "initial_strings": [
@@ -38,9 +36,8 @@ Variation 1:
         "d) muy / ocupado"
     ],
     "criteria": "b"
-}
+},
 
-Variation 2:
 {
     "word_values": ["muy", "rápido"],
     "initial_strings": [
@@ -56,9 +53,8 @@ Variation 2:
         "d) demasiado / tarde"
     ],
     "criteria": "c"
-}
+},
 
-Variation 3:
 {
     "word_values": ["muy", "caliente"],
     "initial_strings": [
@@ -75,5 +71,5 @@ Variation 3:
     ],
     "criteria": "d"
 }
-"""
+
 ]
