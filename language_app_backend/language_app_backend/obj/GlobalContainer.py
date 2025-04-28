@@ -1262,27 +1262,19 @@ class GlobalContainer:
 
         user = self.users_collection.find_one({"user_id": user_id})
 
-        print("debug 0")
-
         if not user:
             print(f"User {user_id} not found in the database.")
             return None, False
         
-        print("debug 1")
-
         last_created_exercise_id = user.get("last_created_exercise_id", "")
 
         if not last_created_exercise_id:
             print(f"User {user_id} has no last created exercise ID.")
             return None, False
         
-        print("debug 2")
-
         if last_created_exercise_id == "PROCESSING":
             print(f"User {user_id} is currently creating a new exercise.")
             return None, True# also return True to indicate that the user is currently creating a new exercise
-
-        print("debug 3")
 
         exercise = self.exercises_collection.find_one({"exercise_id": last_created_exercise_id})
 
@@ -1290,8 +1282,6 @@ class GlobalContainer:
             print(f"Exercise ID '{last_created_exercise_id}' not found in the database.")
             return None, False
         
-        print("debug 4")
-
         return exercise, True
     
     def create_new_exercise(self,
