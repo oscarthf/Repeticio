@@ -18,6 +18,7 @@ GLOBALS = new Globals();
 
 function init() {
     get_user_object();
+    get_user_words();
     init_settings_wrapper();
 }
 
@@ -67,22 +68,75 @@ function get_user_words() {
     xhr.send();
 }
 
-function render_user_object() {
-    if (GLOBALS.user_object) {
-        var user_object_string = JSON.stringify(GLOBALS.user_object, null, 2);
-        GLOBALS.user_object_wrapper.innerHTML = "<pre>" + user_object_string + "</pre>";
-    } else {
+function render_user_object() {    
+
+    // user_entry = {
+    //     "user_id": user_id, 
+    //     "xp": 0,
+    //     "current_language": language,
+    //     "subscription_status": False,
+    //     "last_time_checked_subscription": 0,
+    //     "last_created_exercise_id": "",
+    //     "last_created_exercise_time": 0,
+    //     "languages": {
+    //         language: {
+    //             "current_level": 0,
+    //         }
+    //     }
+    // }
+
+    if (GLOBALS.user_object == null) {
         GLOBALS.user_object_wrapper.innerHTML = "<p>No user object available.</p>";
+        return;
     }
+
+    var user = GLOBALS.user_object;
+
+    var html = `<p>User ID: ${user.user_id}</p>`;
+    html += `<p>XP: ${user.xp}</p>`;
+    html += `<p>Current Language: ${user.current_language}</p>`;
+    html += `<p>Subscription Status: ${user.subscription_status ? "Active" : "Inactive"}</p>`;
+    html += `<p>Last Time Checked Subscription: ${new Date(user.last_time_checked_subscription * 1000).toLocaleString()}</p>`;
+    html += `<p>Last Created Exercise ID: ${user.last_created_exercise_id}</p>`;
+    html += `<p>Last Created Exercise Time: ${new Date(user.last_created_exercise_time * 1000).toLocaleString()}</p>`;
+    html += `<p>Languages:</p><ul>`;
+
+    for (let lang in user.languages) {
+        html += `<li>${lang} - Current Level: ${user.languages[lang].current_level}</li>`;
+    }
+
+    html += `</ul>`;
+
+    GLOBALS.user_object_wrapper.innerHTML = html;
+    
 }
 
 function render_user_words() {
-    if (GLOBALS.user_words) {
-        var user_words_string = JSON.stringify(GLOBALS.user_words, null, 2);
-        GLOBALS.user_words_wrapper.innerHTML = "<pre>" + user_words_string + "</pre>";
-    } else {
+
+    // word_entry = {
+    //     "_id": word_key,
+    //     "user_id": user_id,
+    //     "language": language,
+    //     "last_visited_times": [],
+    //     "last_scores": [],
+    //     "is_locked": True
+    // }
+
+    if (GLOBALS.user_words == null) {
         GLOBALS.user_words_wrapper.innerHTML = "<p>No user words available.</p>";
+        return;
     }
+
+    var html = "<ul>";
+
+    for (let word of GLOBALS.user_words) {
+        html += `<li>${word.word} - Last visited: ${word.last_visited_times.join(", ")}</li>`;
+    }
+
+    html += "</ul>";
+
+    GLOBALS.user_words_wrapper.innerHTML = html;
+
 }
 
 function init_settings_wrapper() {
