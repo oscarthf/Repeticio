@@ -12,7 +12,6 @@ from pymongo import ASCENDING as PY_MONGO_ASCENDING
 
 from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               SUPPORTED_LANGUAGES,
-                              REAL_LANGUAGE_NAMES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
                               MAX_NUMBER_OF_EXERCISES,
@@ -473,15 +472,37 @@ class GlobalContainer:
                 self.name = name
                 self.code = code
 
-        languages = [Language(key, value) for key, value in REAL_LANGUAGE_NAMES.items() if key in SUPPORTED_LANGUAGES]
+        languages = [Language(key, value) for key, value in SUPPORTED_LANGUAGES.items()]
 
         return languages
     
     def get_user_language(self,
-                            user_id) -> Optional[str]:
+                          user_id) -> Optional[str]:
         
         """
-        Get the user's languages from the database.
+        Get the user's UI languages from the database.
+        """
+        
+        user = self.users_collection.find_one({"user_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return None
+        
+        user_language = user.get("user_language", None)
+
+        if user_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported user language '{user_language}' for user {user_id}.")
+            return None
+        
+        return user_language
+
+
+    def get_language(self,
+                     user_id) -> Optional[str]:
+        
+        """
+        Get the user's course languages from the database.
         """
 
         user = self.users_collection.find_one({"user_id": user_id})

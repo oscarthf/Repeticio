@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('settings', views.app_settings, name='settings'),
     path('select_language', views.select_language, name='select_language'),
+    path('select_user_language', views.select_user_language, name='select_user_language'),
     path('create_new_exercise', views.create_new_exercise, name='create_new_exercise'),
     path('get_created_exercise', views.get_created_exercise, name='get_created_exercise'),
     path('get_user_object', views.get_user_object, name='get_user_object'),

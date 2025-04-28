@@ -12,7 +12,7 @@ from ..util.prompts.vocabulary import (
     INITIAL_WORD_PROMPT,
 )
 from ..util.constants import (
-    REAL_LANGUAGE_NAMES,
+    SUPPORTED_LANGUAGES,
     OPENAI_MODEL_NAME,
     MAX_WORD_LENGTH,
 )
@@ -20,7 +20,7 @@ from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:
 
-    real_language_name = REAL_LANGUAGE_NAMES[language]
+    real_language_name = SUPPORTED_LANGUAGES[language]
 
     language_str = f"{real_language_name} ({language})"
 
@@ -262,7 +262,7 @@ class LLM:
         Get a new word for the given language which is not already in the vocabulary.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         
@@ -305,7 +305,7 @@ class LLM:
         Get the level of the word for the given language.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         
@@ -342,7 +342,7 @@ class LLM:
         Get the initial words for the given language.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         

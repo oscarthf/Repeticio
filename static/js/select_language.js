@@ -1,7 +1,10 @@
 
 // let home_url = "{% url 'home' %}";
+// let set_language_url = "{% url 'set_language' %}";
+// let set_user_language_url = "{% url 'set_user_language' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
+// let is_set_user_language = {{ is_set_user_language }};
 // let languages = [
 //     {% for language in languages %}
 //         ["{{ language.code }}", "{{ language.name }}"]
@@ -27,7 +30,6 @@ function init_language_list() {
 
     for (var i = 0; i < GLOBALS.number_of_languages; i++) {
         language_list_html += "<li class='language_item' id='language_" + i + "' onclick='select_language(" + i + ")'>";
-        language_list_html += "<img src='/static/img/flags/" + languages[i][0] + ".png' alt='" + languages[i][1] + "'>";
         language_list_html += "<span>" + languages[i][1] + "</span>";
         language_list_html += "</li>";
     }
@@ -41,13 +43,32 @@ function init_language_list() {
 
 function select_language(index) {
 
-    // redirect to home but add ?language=<language_code> to the url
-
     var language_code = languages[index][0];
     
-    var url = home_url + "?language=" + language_code;
+    if (is_set_user_language) {
+        var url = set_user_language_url + "?language=" + language_code;
+    } else {
+        var url = set_language_url + "?language=" + language_code;
+    }
 
-    window.location.href = url;
+    //
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                console.log("Success");
+                window.location.href = home_url;
+            } else {
+                console.error("Error setting language: " + response.error);
+            }
+        } else if (xhr.readyState == 4) {
+            console.error("Failed to set language. Status: " + xhr.status + ", Response: " + xhr.responseText);
+        }
+    }
+    xhr.send();
 
 }
 

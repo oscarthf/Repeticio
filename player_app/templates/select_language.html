@@ -2,7 +2,8 @@
 
 {% load static %} 
 
-{% block title %}Open Language App | Select a Language{% endblock %} 
+{% block title %}Open Language App | What language would you like to practice?{% endblock %} 
+{% block title %}{{ title_string }}{% endblock %} 
 {% block content %}
 
     <div class="container mt-5">
@@ -23,8 +24,11 @@
     <script>
         
         let home_url = "{% url 'home' %}";
+        let set_language_url = "{% url 'set_language' %}";
+        let set_user_language_url = "{% url 'set_user_language' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
+        let is_set_user_language = {{ title_string }};
         let languages = [
             {% for language in languages %}
                 ["{{ language.code }}", "{{ language.name }}"]

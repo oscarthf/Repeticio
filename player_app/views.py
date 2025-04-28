@@ -207,6 +207,36 @@ def home(request):
 
     return render(request, 'home.html')
 
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def select_user_language(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+
+
+    
+    data = request.GET
+    if data and data.get("language", None) is not None:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    language = data.get("language")
+
+
+    languages = global_container.get_languages()
+
+    if not languages:
+        return JsonResponse({"error": "Failed to get languages"}, status=500)
+    
+    return render(request, 'select_language.html',
+                  {"languages": languages,
+                   "title_string": "What language would you like to practice?",
+                   "is_set_user_language": "true"})
+
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def select_language(request):
@@ -222,7 +252,9 @@ def select_language(request):
         return JsonResponse({"error": "Failed to get languages"}, status=500)
     
     return render(request, 'select_language.html',
-                  {"languages": languages})
+                  {"languages": languages,
+                   "title_string": "What language would you like instructions in?",
+                   "is_set_user_language": "false"})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
