@@ -1,5 +1,5 @@
 
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 import threading
 import time
 import datetime
@@ -724,6 +724,48 @@ class GlobalContainer:
         
         return user
     
+    def get_inspiration_exercises(self,
+                                  exercise_key) -> List[Dict[Any, Any]]:
+        
+        """
+        Get up to 3 exercises for inspiration to create a new one
+        """
+
+        exercise_id_list_doc = self.exercises_id_lists_collection.find_one({"_id": exercise_key})
+        
+        if not exercise_id_list_doc:
+            print(f"No exercises generated for key: {exercise_key}")
+            return []
+        
+        exercise_id_list = exercise_id_list_doc.get("exercise_id_list", None)
+
+        if exercise_id_list is None or not len(exercise_id_list):
+            print(f"Exercise list not found for key '{exercise_key}'.")
+            return []
+        
+        output_exercise_ids = []
+
+        for e_i in range(3):
+            random_index = np.random.randint(0, len(exercise_id_list))
+            random_exercise_id = exercise_id_list.pop(random_index)
+            output_exercise_ids.append(random_exercise_id)
+            if not len(exercise_id_list):
+                break
+
+        output_exercises = []
+
+        for exercise_id in output_exercise_ids:
+
+            exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
+
+            if not exercise:
+                print(f"Exercise ID '{exercise_id}' not found in the database.")
+                continue
+
+            output_exercises.append(exercise)
+
+        return output_exercises
+            
     def get_user_words(self,
                         user_id,
                         language,
@@ -937,7 +979,6 @@ class GlobalContainer:
     
     def get_exercise_id(self,
                         word_keys,
-                        exercise_type,
                         current_language,
                         current_level) -> str:
         """
@@ -947,7 +988,9 @@ class GlobalContainer:
         sorted_word_keys = sorted(word_keys, key=lambda x: x.lower())
         sorted_word_keys_combined = "_".join(sorted_word_keys)
 
-        exercise_key = f"{exercise_type}__{current_language}__{current_level}__{sorted_word_keys_combined}"
+        number_of_words_needed = len(word_keys)
+
+        exercise_key = f"{number_of_words_needed}__{current_language}__{current_level}__{sorted_word_keys_combined}"
 
         exercise_id_list_doc = self.exercises_id_lists_collection.find_one({"_id": exercise_key})
 
@@ -966,7 +1009,6 @@ class GlobalContainer:
             
             exercise_id_list = self.add_to_exercise_id_list(exercise_key,
                                                             word_keys,
-                                                            exercise_type,
                                                             current_language,
                                                             current_level)
 
@@ -986,7 +1028,6 @@ class GlobalContainer:
     def add_to_exercise_id_list(self,
                                 exercise_key,
                                 word_keys,
-                                exercise_type,
                                 current_language,
                                 current_level) -> None:
         
@@ -1001,6 +1042,8 @@ class GlobalContainer:
         if not len(word_values) == len(word_keys):
             print(f"Not all word keys found in the database for key '{exercise_key}'.")
             return None
+                
+        inspiration_exercises = self.get_inspiration_exercises(exercise_key)
         
         exercise = None
         exercise_id_list = []
@@ -1009,9 +1052,9 @@ class GlobalContainer:
             num_tries += 1
             try:
                 exercise = self.llm.create_exercise(word_values,
-                                                    exercise_type,
                                                     current_language,
-                                                    current_level)
+                                                    current_level,
+                                                    inspiration_exercises)
                 break
             except Exception as e:
                 print(f"Error creating exercise for key '{exercise_key}': {e}. Retrying... (Probably OpenAI API rate limit exceeded)")
@@ -1129,7 +1172,6 @@ class GlobalContainer:
         
         ##########################################################################
 
-        # check if exercise_id exists in the database
         exercise = self.exercises_collection.find_one({"exercise_id": exercise_id})
 
         if not exercise:
@@ -1353,20 +1395,9 @@ class GlobalContainer:
             return False
         
         number_of_words_needed = 2
-
         if np.random.rand() < 0.5:
-            number_of_words_needed -= 1
+            number_of_words_needed = 1
 
-        if number_of_words_needed == 1:
-            exercise_index = np.random.randint(0, len(ONE_BLANK_EXERCISE_PROMPTS))
-            exercise_type = f"1_{exercise_index}"
-        elif number_of_words_needed == 2:
-            exercise_index = np.random.randint(0, len(TWO_BLANK_EXERCISE_PROMPTS))
-            exercise_type = f"2_{exercise_index}"
-        else:
-            print(f"Invalid number of words needed: {number_of_words_needed}.")
-            return False
-        
         word_keys = []
 
         for _ in range(number_of_words_needed):
@@ -1381,7 +1412,6 @@ class GlobalContainer:
             word_keys.append(word_key)
             
         exercise_id = self.get_exercise_id(word_keys, 
-                                            exercise_type,
                                             current_language,
                                             current_level)
         
