@@ -89,3 +89,5 @@ function init_settings_wrapper() {
     render_user_object();
     render_user_words();
 }
+
+init();
