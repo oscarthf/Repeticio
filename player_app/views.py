@@ -430,14 +430,19 @@ def get_user_words(request):
     data = request.GET
     if not data:
         return JsonResponse({"error": "No data provided"}, status=400)
+    
     language = data.get("language")
     is_locked = data.get("is_locked")
+    
     if not language or is_locked is None:
         return JsonResponse({"error": "Missing language or is_locked"}, status=400)
+    
     is_locked = True if is_locked.lower() == "true" else False
+    
     words = global_container.get_user_words(user_id, language, is_locked)
 
     if words is None:
         return JsonResponse({"error": "Failed to get user words"}, status=500)
     
-    return JsonResponse(words, status=200)
+    return JsonResponse({"success": True,
+                         "words":words}, status=200)

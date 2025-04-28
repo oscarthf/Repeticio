@@ -19,6 +19,16 @@
                         <button class="btn btn-lg btn-primary w-100">
                             <a href="{% url 'customer_portal' %}">Manage Subscription</a>
                         </button>
+
+                        <div class="mb-4">
+                            <h5 class="secondary_title text-center mb-4">User Object</h5>
+                            <div id="user_object_wrapper"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="secondary_title text-center mb-4">User Words</h5>
+                            <div id="user_words_wrapper"></div>
+                        </div>
                     
                     </div>
                 </div>
@@ -31,6 +41,8 @@
     <script>
         
         let home_url = "{% url 'home' %}";
+        let get_user_object_url = "{% url 'get_user_object' %}";
+        let get_user_words_url = "{% url 'get_user_words' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
 
