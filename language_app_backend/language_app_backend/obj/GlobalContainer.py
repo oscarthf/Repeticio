@@ -972,6 +972,10 @@ class GlobalContainer:
 
             exercise_id_list = self.revise_exercise_id_list(exercise_id_list)
 
+        if not exercise_id_list or not len(exercise_id_list):
+            print(f"No exercise id found for key '{exercise_key}'.")
+            return None
+
         exercise_id = np.random.choice(exercise_id_list)
         print(f"Excersize found for key '{exercise_key}': {exercise_id}.")
 
