@@ -115,7 +115,7 @@ def empty_word_entry(word_key,
     """
     Create an empty word entry for the database.
     """
-    return {
+    word_entry = {
         "_id": word_key,
         "user_id": user_id,
         "language": language,
@@ -123,6 +123,8 @@ def empty_word_entry(word_key,
         "last_scores": [],
         "is_locked": True
     }
+
+    return word_entry
 
 def empty_word_document(word_key,
                         word_value,
