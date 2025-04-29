@@ -21,7 +21,7 @@ from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               VOCABULARY_REVISION_INTERVAL,
                               MAX_CONCURRENT_EXERCISE_CREATIONS)
 
-def next_word(word_keys, 
+def next_word(word_ids, 
               word_scores, 
               word_last_visited_times,
               temperature=NEXT_WORD_TEMPERATURE) -> str:
@@ -30,8 +30,8 @@ def next_word(word_keys,
     Select the next word to show to the user based on their last visited times and scores.
     """
 
-    assert len(word_keys) == len(word_scores) == len(word_last_visited_times), "All lists must be of the same length."
-    assert len(word_keys) > 0, "No words available to select from."
+    assert len(word_ids) == len(word_scores) == len(word_last_visited_times), "All lists must be of the same length."
+    assert len(word_ids) > 0, "No words available to select from."
 
     # adjusted score = (1 - score) * (1 + time_since_last_visit)
     print(f"word_last_visited_times: {word_last_visited_times}")
@@ -46,7 +46,7 @@ def next_word(word_keys,
 
     if time_since_oldest_visit <= 0:
         print("No words have been visited yet, returning random word.")
-        return np.random.choice(word_keys)
+        return np.random.choice(word_ids)
 
     word_last_visited_times = [(current_time - time).total_seconds() for time in word_last_visited_times]
 
@@ -69,11 +69,11 @@ def next_word(word_keys,
     best_word_index_after_noise = np.argmax(adjusted_scores)
 
     if not best_word_index_before_noise == best_word_index_after_noise:
-        print(f"Best word before noise: {word_keys[best_word_index_before_noise]}")
-        print(f"Best word after noise: {word_keys[best_word_index_after_noise]}")
-        print(f"Temperature: {temperature}, number of words: {len(word_keys)}")
+        print(f"Best word before noise: {word_ids[best_word_index_before_noise]}")
+        print(f"Best word after noise: {word_ids[best_word_index_after_noise]}")
+        print(f"Temperature: {temperature}, number of words: {len(word_ids)}")
 
-    return word_keys[best_word_index_after_noise]
+    return word_ids[best_word_index_after_noise]
     
 def empty_user(user_id, 
                ui_language,
@@ -109,7 +109,7 @@ def empty_exercise_id_list_doc(exercise_key) -> Dict[Any, Any]:
         "exercise_id_list": [],
     }
 
-def empty_word_entry(word_key,
+def empty_word_entry(word_id,
                      user_id,
                      language) -> Dict[Any, Any]:
 
@@ -117,7 +117,7 @@ def empty_word_entry(word_key,
     Create an empty word entry for the database.
     """
     word_entry = {
-        "_id": word_key,
+        "_id": word_id,
         "user_id": user_id,
         "language": language,
         "last_visited_times": [],
@@ -127,7 +127,7 @@ def empty_word_entry(word_key,
 
     return word_entry
 
-def empty_word_document(word_key,
+def empty_word_document(word_id,
                         word_value,
                         language,
                         level) -> Dict[Any, Any]:
@@ -136,7 +136,7 @@ def empty_word_document(word_key,
     Create an empty word document for the database.
     """
     return {
-        "_id": word_key,
+        "_id": word_id,
         "word_value": word_value,
         "language": language,
         "level": level,
@@ -241,11 +241,11 @@ class GlobalContainer:
         # get all servers with time since last heartbeat less than 1 minute old
         current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
-        original_server_ids = [server["server_id"] for server in servers]
+        original_server_ids = [server["_id"] for server in servers]
 
         servers = [server for server in servers if current_time - server["last_heartbeat"] < 60]
 
-        server_ids = [server["server_id"] for server in servers]
+        server_ids = [server["_id"] for server in servers]
 
         old_server_ids = [server_id for server_id in original_server_ids if server_id not in server_ids]
 
@@ -261,7 +261,7 @@ class GlobalContainer:
             return False
         
         # get the server with the alpha-numeric id that is the lowest
-        server_ids = [server["server_id"] for server in servers]
+        server_ids = [server["_id"] for server in servers]
 
         server_ids = sorted(server_ids)
 
@@ -288,13 +288,13 @@ class GlobalContainer:
         """
         first_heartbeat_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         server_entry = {
-            "server_id": self.server_id,
+            "_id": self.server_id,
             "last_heartbeat": first_heartbeat_time,
             "startup_time": self.startup_time,
         }
 
         self.servers_collection.update_one(
-            {"server_id": self.server_id},
+            {"_id": self.server_id},
             {"$set": server_entry},
             upsert=True
         )
@@ -322,7 +322,7 @@ class GlobalContainer:
     def set_last_time_checked_subscription(self, user_id, current_time) -> None:
         current_time_unix = int(current_time.timestamp())
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"_id": user_id},
             {"$set": {
                 "last_time_checked_subscription": current_time_unix
             }}
@@ -333,7 +333,7 @@ class GlobalContainer:
         Get the user's subscription status from the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         if not user:
             print(f"User {user_id} not found in the database.")
             return False
@@ -352,14 +352,14 @@ class GlobalContainer:
         """
 
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"_id": user_id},
             {"$set": {
                 "subscription_status": is_active
             }}
         )
 
     def get_last_time_checked_subscription(self, user_id) -> int:
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         if not user:
             print(f"User {user_id} not found in the database.")
             return datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc)
@@ -387,12 +387,12 @@ class GlobalContainer:
         
         ##################################################################
         
-        self.servers_collection.create_index([('server_id', PY_MONGO_ASCENDING)], unique=True)
+        # self.servers_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
         self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
-        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('_id', PY_MONGO_ASCENDING)], unique=True)
+        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
         self.user_thumbs_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('exercise_id', PY_MONGO_ASCENDING)], unique=True)
-        self.users_collection.create_index([('user_id', PY_MONGO_ASCENDING)], unique=True)
-        self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
+        # self.users_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
+        # self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
 
         ##################################################################
 
@@ -427,10 +427,10 @@ class GlobalContainer:
 
         for level, word_values in initial_words[language].items():
             for word_value in word_values:
-                word_key = str(uuid.uuid4())
+                word_id = str(uuid.uuid4())
                 word_value = word_value.replace(" ", "_")
                 level = int(level)
-                word_doc = empty_word_document(word_key,
+                word_doc = empty_word_document(word_id,
                                                 word_value,
                                                 language,
                                                 level)
@@ -486,7 +486,7 @@ class GlobalContainer:
         Get the user's ui_language from the database.
         """
         
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -508,7 +508,7 @@ class GlobalContainer:
         Get the user's learning_language from the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -548,7 +548,7 @@ class GlobalContainer:
         if learning_language is None:
             return False, 'select_learning_language'
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if user:
             print(f"User {user_id} already exists in the database.")
@@ -689,10 +689,10 @@ class GlobalContainer:
 
             vocabulary[word_i]["level"] = revised_level
 
-            word_key = word_doc["_id"]
+            word_id = word_doc["_id"]
 
             self.words_collection.update_one(
-                {"_id": word_key},
+                {"_id": word_id},
                 {"$set": {
                     "level": revised_level
                 }}
@@ -737,8 +737,8 @@ class GlobalContainer:
             print(f"Failed to get word level for new word '{new_word_value}' in language '{language}'.")
             return False
 
-        word_key = str(uuid.uuid4())
-        word_doc = empty_word_document(word_key,
+        word_id = str(uuid.uuid4())
+        word_doc = empty_word_document(word_id,
                                         new_word_value,
                                         language,
                                         level)
@@ -755,7 +755,7 @@ class GlobalContainer:
         Get the user object from the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -840,7 +840,7 @@ class GlobalContainer:
         Check if the user should unlock a new word based on their score.
         """
         
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -890,17 +890,17 @@ class GlobalContainer:
                 print(f"No words found for level {current_level} in language '{current_learning_language}'.")
                 return -1
 
-            this_level_word_keys = [word["_id"] for word in this_level_words]
+            this_level_word_ids = [word["_id"] for word in this_level_words]
 
-            word_keys = [word["_id"] for word in words]
-            this_level_word_keys_not_in_words = [word for word in this_level_word_keys if word not in word_keys]
+            word_ids = [word["_id"] for word in words]
+            this_level_word_ids_not_in_words = [word for word in this_level_word_ids if word not in word_ids]
             
-            if not len(this_level_word_keys_not_in_words):
+            if not len(this_level_word_ids_not_in_words):
                 print(f"User {user_id} already has all words for level {current_level}.")
                 current_level += 1
                 # increase level
                 self.users_collection.update_one(
-                    {"user_id": user_id},
+                    {"_id": user_id},
                     {"$set": {
                         "learning_languages." + current_learning_language + ".current_level": current_level
                     }}
@@ -908,23 +908,23 @@ class GlobalContainer:
                 print(f"User {user_id} is now at level {current_level}.")
                 return 3
             
-            random_word_key = np.random.choice(this_level_word_keys_not_in_words)
+            random_word_id = np.random.choice(this_level_word_ids_not_in_words)
 
             (random_word, 
              success) = self.add_word_to_locked_words(user_id,
-                                                        random_word_key,
+                                                        random_word_id,
                                                         current_learning_language)
             if not success:
-                print(f"Failed to add word '{random_word_key}' to locked words for user {user_id}.")
+                print(f"Failed to add word '{random_word_id}' to locked words for user {user_id}.")
                 return -1
             
             locked_words.append(random_word)
         
         if not len(words):
             unlocked_word = locked_words.pop(0)
-            word_key = unlocked_word["_id"]
+            word_id = unlocked_word["_id"]
             self.user_words_collection.update_one(
-                {"_id": word_key,
+                {"word_id": word_id,
                  "user_id": user_id},
                 {"$set": {
                     "is_locked": False
@@ -952,9 +952,9 @@ class GlobalContainer:
         if percentage_needs_work > 50:
             # unlock a new word if more than 50% of words need work
             unlocked_word = locked_words.pop(0)
-            word_key = unlocked_word["_id"]
+            word_id = unlocked_word["_id"]
             self.user_words_collection.update_one(
-                {"_id": word_key,
+                {"word_id": word_id,
                  "user_id": user_id},
                 {"$set": {
                     "is_locked": False
@@ -970,13 +970,13 @@ class GlobalContainer:
 
     def update_word_in_user_words(self, 
                                   user_id, 
-                                  word_key, 
+                                  word_id, 
                                   score) -> bool:
         """
         Update the word in the user's word list in the database.
         """
         
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -987,11 +987,11 @@ class GlobalContainer:
             print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return False
 
-        selected_word = self.user_words_collection.find_one({"_id": word_key,
+        selected_word = self.user_words_collection.find_one({"word_id": word_id,
                                                             "user_id": user_id})
 
         if not selected_word:
-            print(f"Word ID '{word_key}' not found in user's word list.")
+            print(f"Word ID '{word_id}' not found in user's word list.")
             return False
 
         time_now = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
@@ -1005,31 +1005,31 @@ class GlobalContainer:
             selected_word["last_scores"].pop(0)
 
         self.user_words_collection.update_one(
-            {"_id": word_key,
+            {"word_id": word_id,
              "user_id": user_id},
             {"$set": {
                 "last_visited_times": selected_word["last_visited_times"],
                 "last_scores": selected_word["last_scores"]
             }}
         )
-        print(f"Updated word ID '{word_key}' for user {user_id}.")
+        print(f"Updated word ID '{word_id}' for user {user_id}.")
 
         return True
     
     def get_exercise_id(self,
-                        word_keys,
+                        word_ids,
                         current_learning_language,
                         current_level) -> str:
         """
         Get an exercise id for the user from the database.
         """
 
-        sorted_word_keys = sorted(word_keys, key=lambda x: x.lower())
-        sorted_word_keys_combined = "_".join(sorted_word_keys)
+        sorted_word_ids = sorted(word_ids, key=lambda x: x.lower())
+        sorted_word_ids_combined = "_".join(sorted_word_ids)
 
-        number_of_words_needed = len(word_keys)
+        number_of_words_needed = len(word_ids)
 
-        exercise_key = f"{number_of_words_needed}__{current_learning_language}__{current_level}__{sorted_word_keys_combined}"
+        exercise_key = f"{number_of_words_needed}__{current_learning_language}__{current_level}__{sorted_word_ids_combined}"
 
         exercise_id_list_doc = self.exercises_id_lists_collection.find_one({"_id": exercise_key})
 
@@ -1047,7 +1047,7 @@ class GlobalContainer:
         if len(exercise_id_list) < MAX_NUMBER_OF_EXERCISES:
             
             exercise_id_list = self.add_to_exercise_id_list(exercise_key,
-                                                            word_keys,
+                                                            word_ids,
                                                             current_learning_language,
                                                             current_level)
 
@@ -1066,7 +1066,7 @@ class GlobalContainer:
     
     def add_to_exercise_id_list(self,
                                 exercise_key,
-                                word_keys,
+                                word_ids,
                                 current_learning_language,
                                 current_level) -> None:
         
@@ -1076,9 +1076,9 @@ class GlobalContainer:
                          
         print(f"Needs to create new exercise for key '{exercise_key}'.")
 
-        word_values = [self.words_collection.find_one({"_id": word_key}) for word_key in word_keys]
+        word_values = [self.words_collection.find_one({"_id": word_id}) for word_id in word_ids]
         word_values = [word["word_value"] for word in word_values if word is not None]
-        if not len(word_values) == len(word_keys):
+        if not len(word_values) == len(word_ids):
             print(f"Not all word keys found in the database for key '{exercise_key}'.")
             return None
                 
@@ -1105,7 +1105,7 @@ class GlobalContainer:
         
         exercise_id = str(uuid.uuid4())
         
-        exercise["word_keys"] = word_keys
+        exercise["word_ids"] = word_ids
         exercise["exercise_id"] = exercise_id
         exercise["created_at"] = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
@@ -1179,7 +1179,7 @@ class GlobalContainer:
             return False, "Missing exercise_id or answer.", False
         
         # get current user exercise
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -1223,9 +1223,9 @@ class GlobalContainer:
             print(f"Exercise ID '{exercise_id}' has no criteria.")
             return False, "Exercise ID has no criteria.", False
         
-        word_keys = exercise.get("word_keys", None)
+        word_ids = exercise.get("word_ids", None)
 
-        if word_keys is None:
+        if word_ids is None:
             print(f"Exercise ID '{exercise_id}' has no word keys.")
             return False, "Exercise ID has no word keys.", False
         
@@ -1236,7 +1236,7 @@ class GlobalContainer:
             was_correct = False
         
         self.update_user_word_score(user_id,
-                                    word_keys,
+                                    word_ids,
                                     was_correct)
         
         if was_correct:
@@ -1257,7 +1257,7 @@ class GlobalContainer:
         Increase the user's XP in the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -1272,7 +1272,7 @@ class GlobalContainer:
         user_xp += xp
 
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"_id": user_id},
             {"$set": {
                 "xp": user_xp
             }}
@@ -1283,32 +1283,32 @@ class GlobalContainer:
         
     def update_user_word_score(self,
                                 user_id,
-                                word_keys,
+                                word_ids,
                                 was_correct) -> bool:
         
         """
         Update the user's word score in the database.
         """
 
-        for word_key in word_keys:
+        for word_id in word_ids:
 
-            user_word = self.user_words_collection.find_one({"_id": word_key,
-                                                            "user_id": user_id})
+            user_word = self.user_words_collection.find_one({"word_id": word_id,
+                                                             "user_id": user_id})
             
             if not user_word:
-                print(f"Word ID '{word_key}' not found in user's word list.")
+                print(f"Word ID '{word_id}' not found in user's word list.")
                 continue
             
             last_scores = user_word.get("last_scores", None)
 
             if last_scores is None:
-                print(f"Word ID '{word_key}' has no last scores.")
+                print(f"Word ID '{word_id}' has no last scores.")
                 last_scores = []
 
             last_visited_times = user_word.get("last_visited_times", None)
 
             if last_visited_times is None:
-                print(f"Word ID '{word_key}' has no last visited times.")
+                print(f"Word ID '{word_id}' has no last visited times.")
                 last_visited_times = []
 
             # append new score and time
@@ -1325,14 +1325,14 @@ class GlobalContainer:
                 last_visited_times.pop(0)
 
             self.user_words_collection.update_one(
-                {"_id": word_key,
+                {"word_id": word_id,
                  "user_id": user_id},
                 {"$set": {
                     "last_scores": last_scores,
                     "last_visited_times": last_visited_times
                 }}
             )
-            print(f"Updated word ID '{word_key}' for user {user_id}.")
+            print(f"Updated word ID '{word_id}' for user {user_id}.")
 
     def get_created_exercise(self,
                              user_id) -> Tuple[Optional[Dict[Any, Any]], bool]:
@@ -1341,7 +1341,7 @@ class GlobalContainer:
         Get the created exercise for the user from the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -1372,7 +1372,7 @@ class GlobalContainer:
         Get a new exercise for the user from the database.
         """
 
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
 
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -1390,7 +1390,7 @@ class GlobalContainer:
                 return False
         
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"_id": user_id},
             {"$set": {
                 "last_created_exercise_id": "PROCESSING",
                 "last_created_exercise_time": int(datetime.datetime.now(datetime.timezone.utc).timestamp())
@@ -1437,20 +1437,20 @@ class GlobalContainer:
         if np.random.rand() < 0.5:
             number_of_words_needed = 1
 
-        word_keys = []
+        word_ids = []
 
         for _ in range(number_of_words_needed):
 
-            (word_key, 
+            (word_id, 
             success) = self.get_next_word(user_id)
             
             if not success:
                 print(f"Failed to get next word for user {user_id}.")
                 return False
             
-            word_keys.append(word_key)
+            word_ids.append(word_id)
             
-        exercise_id = self.get_exercise_id(word_keys, 
+        exercise_id = self.get_exercise_id(word_ids, 
                                             current_learning_language,
                                             current_level)
         
@@ -1461,7 +1461,7 @@ class GlobalContainer:
         print(f"Generated new exercise for user {user_id}: {exercise_id}.")
 
         self.users_collection.update_one(
-            {"user_id": user_id},
+            {"_id": user_id},
             {"$set": {
                 "last_created_exercise_id": exercise_id
             }}
@@ -1581,30 +1581,30 @@ class GlobalContainer:
         
     def add_word_to_locked_words(self, 
                                  user_id, 
-                                 word_key,
+                                 word_id,
                                  current_learning_language) -> bool:
         """
         Add a word to the user's word list in the database.
         """
         
-        current_user_word = self.user_words_collection.find_one({"_id": word_key,
+        current_user_word = self.user_words_collection.find_one({"word_id": word_id,
                                                                  "user_id": user_id})
         if current_user_word:
-            print(f"Word ID '{word_key}' already exists in user {user_id}'s word list.")
+            print(f"Word ID '{word_id}' already exists in user {user_id}'s word list.")
             return None, False
 
-        word_entry = empty_word_entry(word_key,
+        word_entry = empty_word_entry(word_id,
                                       user_id,
                                       current_learning_language)
 
         self.user_words_collection.update_one(
-            {"_id": word_key,
+            {"word_id": word_id,
              "user_id": user_id},
             {"$set": word_entry},
             upsert=True
         )
         
-        print(f"Word ID '{word_key}' added to user {user_id}'s word list.")
+        print(f"Word ID '{word_id}' added to user {user_id}'s word list.")
 
         return word_entry, True
 
@@ -1613,7 +1613,7 @@ class GlobalContainer:
         Get the next word for the user from the database.
         """
         
-        user = self.users_collection.find_one({"user_id": user_id})
+        user = self.users_collection.find_one({"_id": user_id})
         
         if not user:
             print(f"User {user_id} not found in the database.")
@@ -1642,12 +1642,12 @@ class GlobalContainer:
         
         # calculate the next word based on the last visited times and scores
 
-        next_word_key = next_word(word_keys=[word["_id"] for word in words],
+        next_word_id = next_word(word_ids=[word["_id"] for word in words],
                                   word_scores=[word["last_scores"] for word in words],
                                   word_last_visited_times=[word["last_visited_times"] for word in words])
 
-        if next_word_key is None:
+        if next_word_id is None:
             print(f"No next word found for user {user_id}.")
             return None, False
         
-        return next_word_key, True
+        return next_word_id, True

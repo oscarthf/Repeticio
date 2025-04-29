@@ -114,7 +114,7 @@ function render_user_object() {
 function render_user_words() {
 
     // word_entry = {
-    //     "_id": word_key,
+    //     "_id": word_id,
     //     "user_id": user_id,
     //     "language": language,
     //     "last_visited_times": [],

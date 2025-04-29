@@ -10,14 +10,11 @@ from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
 
-try:
-    from language_app_backend.util.db import get_global_container
-    from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
-                                                     DO_NOT_CHECK_SUBSCRIPTION,
-                                                     DEFAULT_RATELIMIT,
-                                                     OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
-except ImportError:
-    print("ImportError: language_app_backend not found. ")
+from language_app_backend.util.db import get_global_container
+from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
+                                                    DO_NOT_CHECK_SUBSCRIPTION,
+                                                    DEFAULT_RATELIMIT,
+                                                    OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -59,7 +56,11 @@ def check_subscription_pipeline(global_container, user_id) -> bool:
         subscription_active = global_container.get_user_subscription(user_id)
 
     return subscription_active
-    
+
+##########################################################################
+### DOES NOT NEED SUBSCRIPTION ###########################################
+##########################################################################
+
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 def login_view(request):
     if request.user.is_authenticated:
@@ -143,6 +144,10 @@ def customer_portal(request):
         return_url=f'{settings.FRONTEND_URL}/settings',
     )
     return redirect(session.url)
+
+##########################################################################
+### DOES NEED SUBSCRIPTION ###############################################
+##########################################################################
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

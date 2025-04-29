@@ -209,7 +209,7 @@ class LLM:
             words_str = f"word: {word_values[0]}"
         else:
             focus_word = np.random.choice(word_values)
-            words_str = f"word: {focus_word}, and use this word somewhere in the exercise too.
+            words_str = f"word: {focus_word}, and use this word somewhere in the exercise too."
 
         query_input = query_input.replace("[TARGET LANGUAGE]", language_str)
         query_input = query_input.replace("[TARGET LEVEL]", level_str)
