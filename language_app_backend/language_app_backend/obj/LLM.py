@@ -59,7 +59,7 @@ def validate_exercise(exercise: Dict[str, Any],
 
     number_of_keys = len(exercise.keys())
 
-    if number_of_keys != 5:
+    if number_of_keys != 4:
         print(f"Invalid number of keys in JSON: {number_of_keys}")
         return False
     
