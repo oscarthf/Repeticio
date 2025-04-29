@@ -75,9 +75,7 @@ def next_word(word_ids,
 
     return word_ids[best_word_index_after_noise]
     
-def empty_user(user_id, 
-               ui_language,
-               learning_language) -> Dict[Any, Any]:
+def empty_user(user_id) -> Dict[Any, Any]:
     """
     Create an empty user document for the database.
     """
@@ -85,17 +83,13 @@ def empty_user(user_id,
     user_entry = {
         "user_id": user_id, 
         "xp": 0,
-        # "ui_language": ui_language,
-        # "current_learning_language": learning_language,
+        # "ui_language": ui_language,# set after user insert
+        # "current_learning_language": learning_language,# set after user insert
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "last_created_exercise_id": "",
         "last_created_exercise_time": 0,
-        "learning_languages": {
-        #     learning_language: {
-        #         "current_level": 0,
-        #     }
-        }
+        "learning_languages": {}
     }
 
     return user_entry
@@ -600,9 +594,7 @@ class GlobalContainer:
 
         if not user:
             print(f"User {user_id} not found in the database.")
-            new_user = empty_user(user_id, 
-                                    ui_language,
-                                    learning_language)
+            new_user = empty_user(user_id)
             self.users_collection.insert_one(new_user)
             
         ######################
