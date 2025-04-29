@@ -173,15 +173,23 @@ def app_settings(request):
     if user_object is None:
         user_object = {}
 
-    user_object_json = json.dumps(user_object, ensure_ascii=False)
+    ######################
 
+    learning_language = global_container.get_learning_language(user_id)
+
+    if learning_language is None:
+        return redirect('select_learning_language')
+    
     user_words = global_container.get_user_words(user_id, 
-                                                  user_object.get("learning_language", ""), 
-                                                  False)
+                                                 learning_language, 
+                                                 False)
     
     if user_words is None:
         user_words = []
+    
+    ######################
 
+    user_object_json = json.dumps(user_object, ensure_ascii=False)
     user_words_json = json.dumps(user_words, ensure_ascii=False)
 
     return render(request, "settings.html", {"user_object_json": user_object_json,
