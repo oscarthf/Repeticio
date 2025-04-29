@@ -189,6 +189,27 @@ def app_settings(request):
     
     ######################
 
+    user_words_no_ids = []
+
+    for word in user_words:
+        # word = {
+        #     "word_id": word_id,
+        #     "user_id": user_id,
+        #     "word_value": word_value,
+        #     "language": language,
+        #     "last_visited_times": [],
+        #     "last_scores": [],
+        #     "is_locked": True
+        # }
+
+        word_no_id = {
+            "word_value": word.get("word_value", ""),
+            "language": word.get("language", ""),
+            "last_visited_times": list(word.get("last_visited_times", [])),
+            "last_scores": list(word.get("last_scores", [])),
+            "is_locked": word.get("is_locked", True)
+        }
+
     user_object_json = json.dumps(user_object, ensure_ascii=False)
     user_words_json = json.dumps(user_words, ensure_ascii=False)
 
