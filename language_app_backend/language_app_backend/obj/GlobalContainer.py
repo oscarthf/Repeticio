@@ -274,7 +274,7 @@ class GlobalContainer:
             if len(old_server_ids):
                 print(f"Removing old servers from the database: {old_server_ids}.")
                 try:
-                    self.servers_collection.delete_many({"server_id": {"$in": old_server_ids}})
+                    self.servers_collection.delete_many({"_id": {"$in": old_server_ids}})
                 except Exception as e:
                     print(f"Error removing old servers from the database: {e}")
 
@@ -289,7 +289,6 @@ class GlobalContainer:
         """
         first_heartbeat_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         server_entry = {
-            "_id": self.server_id,
             "last_heartbeat": first_heartbeat_time,
             "startup_time": self.startup_time,
         }
