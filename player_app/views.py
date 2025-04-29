@@ -199,7 +199,8 @@ def home(request):
 
     ######################
 
-    return render(request, 'home.html', {'show_ads': True})
+    return render(request, 'home.html', {"show_ads": True,
+                                         "google_adsense_client_id": settings.GOOGLE_ADSENSE_CLIENT_ID})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
