@@ -1,7 +1,7 @@
 
 EXAMPLE_WORD_KEYS_FOR_POPULATE = {
     "es": {
-        0: [
+        "A1": [
             "ser", "estar", "tener", "hacer", "ir", "decir", "comer", "beber", "vivir", "hablar",
             "casa", "escuela", "coche", "amigo", "madre", "padre", "niño", "agua", "pan", "leche",
             "sí", "no", "hola", "adiós", "gracias", "por favor", "lo siento", "bien", "mal", "mucho",
@@ -13,7 +13,7 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
             "en", "con", "sin", "para", "sobre", "entre", "abajo", "arriba", "dentro", "fuera",
             "hora", "minuto", "segundo", "trabajo", "libro", "mesa", "silla", "gato", "perro", "calle"
         ],
-        1: [
+        "A2": [
             "buscar", "encontrar", "esperar", "necesitar", "entrar", "salir", "llevar", "usar", "abrir", "cerrar",
             "empezar", "terminar", "ayudar", "llamar", "viajar", "volver", "cambiar", "pagar", "comprar", "vender",
             "siempre", "a veces", "casi", "nunca", "temprano", "tarde", "seguro", "ocupado", "libre", "feliz",
@@ -25,7 +25,7 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
             "cocina", "baño", "dormitorio", "salón", "ventana", "puerta", "pared", "suelo", "techo", "lugar",
             "ciudad", "pueblo", "campo", "playa", "montaña", "clima", "tiempo", "calor", "lluvia", "nieve"
         ],
-        2: [
+        "B1": [
             "desear", "odiar", "gustar", "molestar", "preocupar", "sorprender", "imaginar", "recordar", "olvidar", "proponer",
             "sugerir", "intentar", "decidir", "desarrollar", "mejorar", "empeorar", "discutir", "convencer", "permitir", "prohibir",
             "deber", "soler", "parecer", "importar", "significar", "crecer", "nacer", "morir", "herir", "curar",
@@ -42,7 +42,7 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
 
 INITIAL_WORD_PROMPT = """
 Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] 
-organized by CEFR levels A1 (0), A2 (1), and B1 (2). For each level, 
+organized by CEFR levels A1, A2, and B1. For each level, 
 include exactly 100 words that are common and useful at that level.
 Each list should include a balanced mix of:
 Common verbs (e.g. "to be", "to eat")
@@ -57,9 +57,9 @@ json
 Copy code
 {
   "xx": {
-    0: ["word1", "word2", "..."],
-    1: ["word1", "word2", "..."],
-    2: ["word1", "word2", "..."]
+    "A1": ["word1", "word2", "..."],
+    "A2": ["word1", "word2", "..."],
+    "B1": ["word1", "word2", "..."]
   }
 }
 Replace "xx" with the language code (e.g., "es" for Spanish, "fr" for French).

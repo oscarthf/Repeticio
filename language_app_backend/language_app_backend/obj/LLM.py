@@ -382,8 +382,16 @@ class LLM:
         if len(json_data[language]) != 3:
             print(f"Invalid number of levels in JSON: {len(json_data[language])}")
             return None
+        
+        parsed_data = {}
+        cefr_levels = ["a1", "a2", "b1"]
 
         for level in json_data[language]:
+
+            if not level.lower() in cefr_levels:
+                print(f"Invalid level in JSON: {level}")
+                return None
+
             if len(json_data[language][level]) < 5:
                 print(f"Invalid number of words in level {level}: {len(json_data[language][level])}")
                 return None
@@ -393,8 +401,12 @@ class LLM:
                     print(f"Invalid word format in level {level}: {word}")
                     return None
                 
-        json_data = remove_duplicate_words(json_data)
+            cefr_level_index = cefr_levels.index(level.lower())
 
-        return json_data
+            parsed_data[cefr_level_index] = json_data[language][level]
+            
+        parsed_data = remove_duplicate_words(parsed_data)
+
+        return parsed_data
 
         
