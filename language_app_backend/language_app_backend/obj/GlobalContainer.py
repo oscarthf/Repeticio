@@ -22,7 +22,8 @@ from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               MAX_CONCURRENT_EXERCISE_CREATIONS,
                               DELETE_SERVER_TIMEOUT,
                               ALLOW_MAIN_SERVER_TIMEOUT,
-                              BACKGROUND_THREAD_SLEEP_TIME)
+                              BACKGROUND_THREAD_SLEEP_TIME,
+                              TIMEOUT_TO_CREATE_NEW_EXERCISE)
 
 def next_word(word_ids, 
               word_scores, 
@@ -602,11 +603,11 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             new_user = empty_user(user_id)
             self.users_collection.insert_one(new_user)
-
-            return True
+            self.add_a1_words_to_user(user_id)
+            print(f"User {user_id} created in the database.")
 
         return False
-            
+    
     def redirect_if_new_user(self, user_id) -> Tuple[bool, str]:
         """
         Redirect the user to the appropriate page based on their status.
@@ -1453,7 +1454,7 @@ class GlobalContainer:
             last_created_exercise_time = user.get("last_created_exercise_time", 0)
 
             current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-            if current_time - last_created_exercise_time < 60:  # 1 minute
+            if current_time - last_created_exercise_time < TIMEOUT_TO_CREATE_NEW_EXERCISE:  # 1 minute
                 print(f"User {user_id} is already creating a new exercise.")
                 return False
         
@@ -1510,14 +1511,18 @@ class GlobalContainer:
         for _ in range(number_of_words_needed):
 
             (word_id, 
-            success) = self.get_next_word(user_id)
+             success) = self.get_next_word(user_id)
             
             if not success:
                 print(f"Failed to get next word for user {user_id}.")
-                return False
+                continue
             
             word_ids.append(word_id)
-            
+
+        if not len(word_ids):
+            print(f"No word IDs found for user {user_id}.")
+            return False
+        
         exercise_id = self.get_exercise_id(word_ids, 
                                             current_learning_language,
                                             current_level)

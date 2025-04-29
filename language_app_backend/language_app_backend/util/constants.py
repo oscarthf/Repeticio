@@ -9,7 +9,7 @@ MAX_WORD_LENGTH = 32
 DELETE_SERVER_TIMEOUT = 60# time to delete server if heartbeat has not been received
 ALLOW_MAIN_SERVER_TIMEOUT = 10# time for server to wait until it is alowed to be the main server
 BACKGROUND_THREAD_SLEEP_TIME = 30# time for server to wait until it is alowed to be the main server
-
+TIMEOUT_TO_CREATE_NEW_EXERCISE = 30# time to wait until a new exercise is created
 # OPENAI_MODEL_NAME = "gpt-4.1"
 OPENAI_MODEL_NAME = "gpt-4o"
 
