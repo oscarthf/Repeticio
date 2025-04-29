@@ -81,7 +81,7 @@ def empty_user(user_id) -> Dict[Any, Any]:
     """
 
     user_entry = {
-        "user_id": user_id, 
+        "_id": user_id, 
         "xp": 0,
         # "ui_language": ui_language,# set after user insert
         # "current_learning_language": learning_language,# set after user insert
@@ -103,7 +103,7 @@ def empty_exercise_id_list_doc(exercise_key) -> Dict[Any, Any]:
         "exercise_id_list": [],
     }
 
-def empty_word_entry(word_id,
+def empty_user_word_entry(word_id,
                      user_id,
                      language) -> Dict[Any, Any]:
 
@@ -111,7 +111,7 @@ def empty_word_entry(word_id,
     Create an empty word entry for the database.
     """
     word_entry = {
-        "_id": word_id,
+        "word_id": word_id,
         "user_id": user_id,
         "language": language,
         "last_visited_times": [],
@@ -596,8 +596,15 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             new_user = empty_user(user_id)
             self.users_collection.insert_one(new_user)
+
+            return True
+
+        return False
             
-        ######################
+    def redirect_if_new_user(self, user_id) -> Tuple[bool, str]:
+        """
+        Redirect the user to the appropriate page based on their status.
+        """
 
         ui_language = self.get_ui_language(user_id)
 
@@ -1652,14 +1659,14 @@ class GlobalContainer:
             print(f"Word ID '{word_id}' already exists in user {user_id}'s word list.")
             return None, False
 
-        word_entry = empty_word_entry(word_id,
-                                      user_id,
-                                      current_learning_language)
+        user_word_entry = empty_user_word_entry(word_id,
+                                                user_id,
+                                                current_learning_language)
 
         self.user_words_collection.update_one(
             {"word_id": word_id,
              "user_id": user_id},
-            {"$set": word_entry},
+            {"$set": user_word_entry},
             upsert=True
         )
         

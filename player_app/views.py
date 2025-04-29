@@ -183,7 +183,9 @@ def home(request):
     
     ######################
 
-    success, redirect_view = global_container.create_user_if_needed(user_id)
+    did_create_user = global_container.create_user_if_needed(user_id)
+
+    success, redirect_view = global_container.redirect_if_new_user(user_id)
     
     if not success:# could be "select_ui_language" or "select_learning_language"
         return redirect(redirect_view)
@@ -209,6 +211,9 @@ def select_ui_language(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
+    
+    did_create_user = global_container.create_user_if_needed(user_id)
+
     supported_languages = global_container.get_supported_languages()
 
     if not supported_languages:
@@ -228,6 +233,9 @@ def select_learning_language(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
+    
+    did_create_user = global_container.create_user_if_needed(user_id)
+
     supported_languages = global_container.get_supported_languages()
 
     if not supported_languages:
