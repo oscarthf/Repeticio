@@ -88,7 +88,16 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ## For Local Deployment (No Docker):
 
 ```
-0. 
+0. Clone this repo and enter the project folder using the command:
+    git clone https://github.com/oscarthf/OpenLanguageApp
+    cd <path/to/OpenLanguageApp>
+1. Follow the steps above to set up your .env file.
+2. Run the following commands to set up the server:
+    pip install -r requirements.txt
+    python manage.py migrate
+    python manage.py collectstatic --noinput
+3. Run the following command to start the server:
+    python manage.py runserver --insecure 0.0.0.0:8000
 ```
 
 ## For Digital Ocean App Platform deployment:

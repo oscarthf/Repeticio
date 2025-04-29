@@ -10,7 +10,7 @@
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow-lg rounded">
                     <div class="card-body">
-                        <h4 class="secondary_title text-center mb-4">Select a Language</h4>    
+                        <h4 class="secondary_title text-center mb-4">{{ title_string }}</h4>    
                         <div id="language_list" class="mb-4"></div>
                     </div>
                 </div>
@@ -27,10 +27,10 @@
         let set_ui_language_url = "{% url 'set_ui_language' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
-        let is_set_ui_language = {{ title_string }};
+        let is_set_ui_language = {{ is_set_ui_language }};
         let languages = [
             {% for language in languages %}
-                ["{{ language.code }}", "{{ language.name }}"]
+                ["{{ language.code }}", "{{ language.name }}"],
             {% endfor %}
         ];
 

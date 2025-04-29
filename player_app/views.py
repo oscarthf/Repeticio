@@ -216,7 +216,7 @@ def select_ui_language(request):
     
     return render(request, 'select_language.html',
                   {"languages": supported_languages,
-                   "title_string": "What language would you like to practice?",
+                   "title_string": "What language would you like instructions in?",
                    "is_set_ui_language": "true"})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
@@ -235,7 +235,7 @@ def select_learning_language(request):
     
     return render(request, 'select_language.html',
                   {"languages": supported_languages,
-                   "title_string": "What language would you like instructions in?",
+                   "title_string": "What language would you like to practice?",
                    "is_set_ui_language": "false"})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)

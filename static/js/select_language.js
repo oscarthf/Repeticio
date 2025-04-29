@@ -7,7 +7,7 @@
 // let is_set_ui_language = {{ is_set_ui_language }};
 // let languages = [
 //     {% for language in languages %}
-//         ["{{ language.code }}", "{{ language.name }}"]
+//         ["{{ language.code }}", "{{ language.name }}"],
 //     {% endfor %}
 // ];
 
