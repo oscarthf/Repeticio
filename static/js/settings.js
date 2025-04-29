@@ -72,7 +72,7 @@ function render_user_words() {
     var html = "<ul>";
 
     for (let word of user_words) {
-        html += `<li>${word.word} - Last visited: ${word.last_visited_times.join(", ")}</li>`;
+        html += `<li>${word.word_value} - Last visited: ${word.last_visited_times.join(", ")}</li>`;
     }
 
     html += "</ul>";
