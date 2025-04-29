@@ -628,7 +628,7 @@ class GlobalContainer:
 
         #######################
 
-        return True
+        return True, None
     
     def vocabulary_background_function_inner(self):
         """
