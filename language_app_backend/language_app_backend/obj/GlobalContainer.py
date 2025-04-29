@@ -109,8 +109,9 @@ def empty_exercise_id_list_doc(exercise_key) -> Dict[Any, Any]:
     }
 
 def empty_user_word_entry(word_id,
-                     user_id,
-                     language) -> Dict[Any, Any]:
+                            user_id,
+                            word_value,
+                            language) -> Dict[Any, Any]:
 
     """
     Create an empty word entry for the database.
@@ -118,6 +119,7 @@ def empty_user_word_entry(word_id,
     word_entry = {
         "word_id": word_id,
         "user_id": user_id,
+        "word_value": word_value,
         "language": language,
         "last_visited_times": [],
         "last_scores": [],
@@ -886,7 +888,7 @@ class GlobalContainer:
     def get_user_words(self,
                         user_id,
                         language,
-                        is_locked) -> Optional[list]:
+                        is_locked) -> Optional[List[Dict[Any, Any]]]:
         """
         Get the user's words from the database.
         """
@@ -1681,9 +1683,16 @@ class GlobalContainer:
         if current_user_word:
             print(f"Word ID '{word_id}' already exists in user {user_id}'s word list.")
             return None, False
+        
+        word_value = self.words_collection.find_one({"_id": word_id})
+
+        if not word_value:
+            print(f"Word ID '{word_id}' not found in the words collection.")
+            return None, False
 
         user_word_entry = empty_user_word_entry(word_id,
                                                 user_id,
+                                                word_value,
                                                 current_learning_language)
 
         self.user_words_collection.update_one(
@@ -1718,8 +1727,8 @@ class GlobalContainer:
         print(f"Unlock word response: {unlock_word_response}.")
         
         user_words = self.get_user_words(user_id,
-                                    current_learning_language,
-                                    False)
+                                         current_learning_language,
+                                         False)
         
         if user_words is None:
             print(f"No user_words found for user {user_id}.")
