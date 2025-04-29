@@ -4,7 +4,8 @@ Create a multiple-choice exercise for a [TARGET LANGUAGE] course at [TARGET LEVE
 using the following word: [TARGET WORDS].
 
 Instructions:
-- Write a sentence with **one blank** ( ___ ) where the correct word should go.
+- Write a sentence with ONE BLANK ( ___ ) where the correct word should go.
+- Make sure you use the word porvided above.
 - Include a short instruction: "Choose the correct word to fill in the blank:"
 - Provide 3 to 5 answer choices, (a, b, c, d, e).
 - Output ONLY a JSON object following this format:
