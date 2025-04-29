@@ -132,7 +132,7 @@ def validate_exercise(exercise: Dict[str, Any],
     output_criteria = unidecode(output_criteria).strip().lower()
     
     if not output_criteria in possible_criteria:
-        print(f"Invalid criteria in output: {output_criteria}")
+        print(f"Invalid criteria in output: {output_criteria} not in {possible_criteria}")
         return False
     
     return True
