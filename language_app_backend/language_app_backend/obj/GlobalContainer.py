@@ -642,13 +642,18 @@ class GlobalContainer:
         """
         
         for language in SUPPORTED_LANGUAGES:
+            
             if language not in self.last_time_revised_vocabulary:
                 self.last_time_revised_vocabulary[language] = 0
 
             current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
             if current_time - self.last_time_revised_vocabulary[language] > VOCABULARY_REVISION_INTERVAL:  # 24 hours
+                            
+                self.populate_initial_words(language)
+
                 self.revise_vocabulary(language)
+            
                 self.last_time_revised_vocabulary[language] = current_time
 
     def vocabulary_background_function(self) -> None:
@@ -725,8 +730,6 @@ class GlobalContainer:
             print(f"Unsupported language '{language}' for revising vocabulary.")
             return False
         
-        self.populate_initial_words(language)
-
         vocabulary = self.words_collection.find({"language": language})
 
         vocabulary = list(vocabulary)
