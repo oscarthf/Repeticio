@@ -6,7 +6,7 @@ VOCABULARY_REVISION_ITERATIONS = 3
 VOCABULARY_REVISION_INTERVAL = 4 * 60 * 60 # 4 hours
 MAX_CONCURRENT_EXERCISE_CREATIONS = 10
 MAX_WORD_LENGTH = 32
-DELETE_SERVER_TIMEOUT = 10 * 60# time to delete server if heartbeat has not been received
+DELETE_SERVER_TIMEOUT = 2 * 60# time to delete server if heartbeat has not been received
 ALLOW_MAIN_SERVER_TIMEOUT = 60# time for server to wait until it is alowed to be the main server
 BACKGROUND_THREAD_SLEEP_TIME = 30# time for server to wait until it is alowed to be the main server
 TIMEOUT_TO_CREATE_NEW_EXERCISE = 30# time to wait until a new exercise is created
@@ -21,6 +21,7 @@ OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
 
 CHECK_SUBSCRIPTION_INTERVAL = 10 * 60  # 10 minutes
 DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
+GET_CREATED_EXERCISES_RATELIMIT = '40/m'  # Rate limit for get_created_exercises view
 
 NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE = 3
 

@@ -15,7 +15,8 @@ from language_app_backend.util.db import get_global_container
 from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
                                                     DO_NOT_CHECK_SUBSCRIPTION,
                                                     DEFAULT_RATELIMIT,
-                                                    OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
+                                                    OPEN_LANGUAGE_APP_ALLOWED_USER_IDS,
+                                                    GET_CREATED_EXERCISES_RATELIMIT)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -296,7 +297,7 @@ def select_learning_language(request):
                    "title_string": "What language would you like to practice?",
                    "is_set_ui_language": "false"})
 
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@ratelimit(key='ip', rate=GET_CREATED_EXERCISES_RATELIMIT)
 @login_required
 def get_created_exercise(request):
 
