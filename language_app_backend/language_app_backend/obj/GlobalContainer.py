@@ -701,8 +701,6 @@ class GlobalContainer:
 
     def update_server_heartbeat_function(self):
 
-        pipeline = []
-        
         while self.is_running:
 
             try:
@@ -710,14 +708,7 @@ class GlobalContainer:
             except Exception as e:
                 print(f"Error in server heartbeat function: {e}")
 
-            try:
-                with self.servers_collection.watch(pipeline) as stream:
-                    print("Watching server collection for changes...")
-                    for change in stream:
-                        print("Change detected:", change)
-                    self.update_server_heartbeat_function_inner()
-            except Exception as e:
-                print(f"Error watching collection: {e}")
+            time.sleep(BACKGROUND_THREAD_SLEEP_TIME)
     
     def revise_vocabulary(self,
                             language) -> bool:
@@ -835,6 +826,8 @@ class GlobalContainer:
         if not user:
             print(f"User {user_id} not found in the database.")
             return None
+        
+        print("User object found in the database.")
         
         return user
     
