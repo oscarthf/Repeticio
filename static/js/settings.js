@@ -72,7 +72,7 @@ function render_user_words() {
     var html = "<ul>";
 
     for (let word of user_words) {
-        html += "<li class='word_item' onclick='this.querySelector(\".word_details\").style.display = this.querySelector(\".word_details\").style.display === \"none\" ? \"block\" : \"none\";'>";
+        html += "<li class='word_item' onclick='toggle_word_details(this)'>";
         html += "<span class='word_value'>" + word._id + "</span>";
         html += "<ul class='word_details' style='display: none;'>";
             html += "<li>Last Visited Times: " + (word.last_visited_times.length > 0 ? word.last_visited_times.join(", ") : "None") + "</li>";
@@ -86,6 +86,15 @@ function render_user_words() {
 
     GLOBALS.user_words_wrapper.innerHTML = html;
 
+}
+
+function toggle_word_details(element) {
+    var details = element.querySelector(".word_details");
+    if (details.style.display === "none") {
+        details.style.display = "block";
+    } else {
+        details.style.display = "none";
+    }
 }
 
 function init_settings_wrapper() {
