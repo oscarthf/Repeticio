@@ -1684,10 +1684,16 @@ class GlobalContainer:
             print(f"Word ID '{word_id}' already exists in user {user_id}'s word list.")
             return None, False
         
-        word_value = self.words_collection.find_one({"_id": word_id})
+        word_doc = self.words_collection.find_one({"_id": word_id})
+
+        if not word_doc:
+            print(f"Word ID '{word_id}' not found in the words collection.")
+            return None, False
+        
+        word_value = word_doc.get("word_value", None)
 
         if not word_value:
-            print(f"Word ID '{word_id}' not found in the words collection.")
+            print(f"Word ID '{word_id}' has no word value.")
             return None, False
 
         user_word_entry = empty_user_word_entry(word_id,
