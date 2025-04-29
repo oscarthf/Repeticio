@@ -73,7 +73,7 @@ function render_user_words() {
 
     for (let word of user_words) {
         html += "<li class='word_item' onclick='toggle_word_details(this)'>";
-        html += "<span class='word_value'>" + word._id + "</span>";
+        html += "<span class='word_value'>" + word.word_value + "</span>";
         html += "<ul class='word_details' style='display: none;'>";
             html += "<li>Last Visited Times: " + (word.last_visited_times.length > 0 ? word.last_visited_times.join(", ") : "None") + "</li>";
             html += "<li>Last Scores: " + (word.last_scores.length > 0 ? word.last_scores.join(", ") : "None") + "</li>";
