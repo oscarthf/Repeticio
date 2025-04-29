@@ -85,17 +85,17 @@ def empty_user(user_id,
     user_entry = {
         "user_id": user_id, 
         "xp": 0,
-        "ui_language": ui_language,
-        "current_learning_language": learning_language,
+        # "ui_language": ui_language,
+        # "current_learning_language": learning_language,
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "last_created_exercise_id": "",
         "last_created_exercise_time": 0,
-        "learning_languages": {
-            learning_language: {
-                "current_level": 0,
-            }
-        }
+        # "learning_languages": {
+        #     learning_language: {
+        #         "current_level": 0,
+        #     }
+        # }
     }
 
     return user_entry
@@ -522,11 +522,42 @@ class GlobalContainer:
         
         return current_learning_language
     
+    def set_learning_language(self,
+                              user_id, 
+                             learning_language) -> bool:
+        
+        """
+        Set the user's learning_language in the database.
+        """
+
+        if learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{learning_language}' for user {user_id}.")
+            return False
+        
+        self.users_collection.update_one(
+            {"_id": user_id},
+            {"$set": {
+                "current_learning_language": learning_language
+            }}
+        )
+        print(f"User {user_id} learning language set to '{learning_language}'.")
+
+        return True
+    
     def create_user_if_needed(self, 
                               user_id) -> bool:
         """
         Create a user in the database
         """
+            
+        user = self.users_collection.find_one({"_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            new_user = empty_user(user_id, 
+                                ui_language,
+                                learning_language)
+            self.users_collection.insert_one(new_user)
             
         ######################
 
@@ -550,21 +581,7 @@ class GlobalContainer:
         if learning_language is None:
             return False, 'select_learning_language'
 
-        ######################
-
-        user = self.users_collection.find_one({"_id": user_id})
-
-        if user:
-            print(f"User {user_id} already exists in the database.")
-            return True
-
-        new_user = empty_user(user_id, 
-                              ui_language,
-                              learning_language)
-
-        self.users_collection.insert_one(new_user)
-        
-        print(f"User {user_id} created in the database.")
+        #######################
 
         return True
     

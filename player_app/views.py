@@ -387,8 +387,22 @@ def set_learning_language(request):
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
 
+    data = request.GET
 
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    if not data.get("language"):
+        return JsonResponse({"error": "Missing language"}, status=400)
+    
+    learning_language = data.get("language")
 
+    success = global_container.set_learning_language(user_id, learning_language)
+    if not success:
+        return JsonResponse({"error": "Failed to set learning language"}, status=500)
+    
+    return JsonResponse({"success": True,
+                         "message": "Learning language set successfully"}, status=200)
     
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -399,6 +413,23 @@ def set_ui_language(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
+
+    data = request.GET
+
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    if not data.get("language"):
+        return JsonResponse({"error": "Missing language"}, status=400)
+    
+    ui_language = data.get("language")
+
+    success = global_container.set_ui_language(user_id, ui_language)
+    if not success:
+        return JsonResponse({"error": "Failed to set UI language"}, status=500)
+    
+    return JsonResponse({"success": True,
+                         "message": "UI language set successfully"}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

@@ -1,5 +1,6 @@
 
 // let home_url = "{% url 'home' %}";
+// let select_learning_language_url = "{% url 'select_learning_language' %}";
 // let set_learning_language_url = "{% url 'set_learning_language' %}";
 // let set_ui_language_url = "{% url 'set_ui_language' %}";
 // let user_name = "{{ user.username }}";
@@ -60,7 +61,11 @@ function select_language(index) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 console.log("Success");
-                window.location.href = home_url;
+                if (is_set_ui_language) {
+                    window.location.href = select_learning_language_url;
+                } else {
+                    window.location.href = home_url;
+                }
             } else {
                 console.error("Error setting language: " + response.error);
             }
