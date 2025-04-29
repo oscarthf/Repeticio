@@ -12,7 +12,7 @@ Instructions:
 - Make sure you use BOTH words provided above.
 - Include a short instruction: "Choose the correct word to fill in the blanks:"
 - Provide 3 to 5 answer choices, (a, b, c, d, e).
-- Please ensure that one and only one answer is correct!!!
+- Please ensure that ONE AND ONLY ONE answer is correct (this is the hardest part!).
 - Output ONLY a JSON object following this format:
 
 {
@@ -23,7 +23,7 @@ Instructions:
     "criteria": [correct answer (example: "c")]
 }
 
-Here are 3 examples:
+Here are 3 examples (may not be in [TARGET LANGUAGE], but follow the same format):
 """
 
 inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
