@@ -139,7 +139,7 @@ def get_inspiration_prompt(inspiration_exercises, is_one_blank):
             else:
                 inspiration_exercise = TWO_BLANK_EXERCISE_INSPIRATION_EXERCISES[e_i]
 
-    inspiration_prompt = ",\n".join([json.dumps(exercise, indend=4) for exercise in inspiration_exercises])
+    inspiration_prompt = ",\n".join([json.dumps(exercise, indent=4) for exercise in inspiration_exercises])
 
     return inspiration_prompt
 
