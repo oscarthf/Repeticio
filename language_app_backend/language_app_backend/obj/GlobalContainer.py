@@ -990,7 +990,7 @@ class GlobalContainer:
         
         if not len(words):
             unlocked_word = locked_words.pop(0)
-            word_id = unlocked_word["_id"]
+            word_id = unlocked_word["word_id"]
             self.user_words_collection.update_one(
                 {"word_id": word_id,
                  "user_id": user_id},
