@@ -42,7 +42,6 @@ def validate_exercise(exercise: Dict[str, Any],
                       possible_criteria: List[str]) -> bool:
 
     # {
-    #     "word_values": ["grande"],
     #     "initial_strings": [
     #         "grande"
     #     ],
@@ -64,26 +63,15 @@ def validate_exercise(exercise: Dict[str, Any],
         print(f"Invalid number of keys in JSON: {number_of_keys}")
         return False
     
-    if not "word_values" in exercise or not "initial_strings" in exercise or not "middle_strings" in exercise or not "final_strings" in exercise or not "criteria" in exercise:
+    if not "initial_strings" in exercise or not "middle_strings" in exercise or not "final_strings" in exercise or not "criteria" in exercise:
         print(f"Invalid keys in JSON: {exercise.keys()}")
         return False
     
-    output_word_values = exercise["word_values"]
     output_initial_strings = exercise["initial_strings"]
     output_middle_strings = exercise["middle_strings"]
     output_final_strings = exercise["final_strings"]
     output_criteria = exercise["criteria"]
 
-    # Check if the number of words in the output matches the input
-    if len(output_word_values) != len(word_values):
-        print(f"Invalid number of words in output: {len(output_word_values)}")
-        return False
-    
-    for word_value in word_values:
-        if not word_value in output_word_values:
-            print(f"Invalid word in output: {word_value}")
-            return False
-        
     # check if the number of initial strings is correct
     if len(output_initial_strings) != 1:
         print(f"Invalid number of initial strings in output: {len(output_initial_strings)}")

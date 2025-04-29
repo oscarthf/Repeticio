@@ -16,7 +16,6 @@ Instructions:
 - Output ONLY a JSON object following this format:
 
 {
-    "word_values": [the words you were provided (to verify you used the correct ones)],
     "initial_strings": [sentence with blank],
     "middle_strings": [instruction line],
     "final_strings": [list of answer choices],
@@ -28,7 +27,6 @@ Here are 3 examples (may not be in [TARGET LANGUAGE], but follow the same format
 
 inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
 {
-    "word_values": ["muy", "feliz"],
     "initial_strings": [
         "Hoy me siento ___ ___"
     ],
@@ -41,7 +39,7 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "c) un / poco",
         "d) muy / ocupado"
     ],
-    "criteria": "b"
+    "criteria": ["b"]
 },
 
 {
@@ -58,7 +56,7 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "c) muy / rápido",
         "d) demasiado / tarde"
     ],
-    "criteria": "c"
+    "criteria": ["c"]
 },
 
 {
@@ -75,7 +73,7 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "c) bastante / dulce"
         "d) muy / caliente",
     ],
-    "criteria": "d"
+    "criteria": ["d"]
 }
 
 ]
