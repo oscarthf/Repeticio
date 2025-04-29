@@ -210,8 +210,12 @@ def app_settings(request):
             "is_locked": word.get("is_locked", True)
         }
 
+        user_words_no_ids.append(word_no_id)
+
+    del user_object["_id"]
+
     user_object_json = json.dumps(user_object, ensure_ascii=False)
-    user_words_json = json.dumps(user_words, ensure_ascii=False)
+    user_words_json = json.dumps(user_words_no_ids, ensure_ascii=False)
 
     return render(request, "settings.html", {"user_object_json": user_object_json,
                                              "user_words_json": user_words_json})
