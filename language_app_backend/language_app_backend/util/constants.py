@@ -6,6 +6,9 @@ VOCABULARY_REVISION_ITERATIONS = 3
 VOCABULARY_REVISION_INTERVAL = 4 * 60 * 60 # 4 hours
 MAX_CONCURRENT_EXERCISE_CREATIONS = 3
 MAX_WORD_LENGTH = 32
+DELETE_SERVER_TIMEOUT = 60# time to delete server if heartbeat has not been received
+ALLOW_MAIN_SERVER_TIMEOUT = 10# time for server to wait until it is alowed to be the main server
+BACKGROUND_THREAD_SLEEP_TIME = 30# time for server to wait until it is alowed to be the main server
 
 # OPENAI_MODEL_NAME = "gpt-4.1"
 OPENAI_MODEL_NAME = "gpt-4o"

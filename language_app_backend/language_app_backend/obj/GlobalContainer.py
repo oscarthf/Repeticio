@@ -19,7 +19,10 @@ from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               MAX_WORD_LENGTH,
                               VOCABULARY_REVISION_ITERATIONS,
                               VOCABULARY_REVISION_INTERVAL,
-                              MAX_CONCURRENT_EXERCISE_CREATIONS)
+                              MAX_CONCURRENT_EXERCISE_CREATIONS,
+                              DELETE_SERVER_TIMEOUT,
+                              ALLOW_MAIN_SERVER_TIMEOUT,
+                              BACKGROUND_THREAD_SLEEP_TIME)
 
 def next_word(word_ids, 
               word_scores, 
@@ -172,7 +175,10 @@ class GlobalContainer:
                  db_client,
                  llm) -> None:
         
+        print("Initializing GlobalContainer...")
         self.server_id = str(uuid.uuid4())
+        print(f"Server ID: {self.server_id}")
+
         self.is_main_server = False
         self.startup_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
@@ -237,7 +243,7 @@ class GlobalContainer:
 
         original_server_ids = [server["_id"] for server in servers]
 
-        servers = [server for server in servers if current_time - server["last_heartbeat"] < 60]
+        servers = [server for server in servers if current_time - server["last_heartbeat"] < DELETE_SERVER_TIMEOUT]
 
         server_ids = [server["_id"] for server in servers]
 
@@ -248,7 +254,7 @@ class GlobalContainer:
             return False
         
         # get all servers with time since startup time more than 1 minute old
-        servers = [server for server in servers if current_time - server["startup_time"] > 60]
+        servers = [server for server in servers if current_time - server["startup_time"] > ALLOW_MAIN_SERVER_TIMEOUT]
 
         if not len(servers):
             print("No servers found with old enough startup times.")
@@ -659,10 +665,7 @@ class GlobalContainer:
                 except Exception as e:
                     print(f"Error in vocabulary background function: {e}")
 
-            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
-            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
-                if self.is_running:
-                    time.sleep(1)
+            time.sleep(BACKGROUND_THREAD_SLEEP_TIME)
 
     def clean_up_background_function(self) -> None:
 
@@ -674,17 +677,14 @@ class GlobalContainer:
 
             # ...
 
-            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
-            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < (60 * 60):
-                if self.is_running:
-                    time.sleep(1)
+            time.sleep(BACKGROUND_THREAD_SLEEP_TIME)
     
     def update_server_heartbeat_function_inner(self):
     
         current_time = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
 
         self.servers_collection.update_one(
-            {"server_id": self.server_id},
+            {"_id": self.server_id},
             {"$set": {
                 "last_heartbeat": current_time
             }}
@@ -695,6 +695,8 @@ class GlobalContainer:
         self.is_main_server = self.check_if_is_main_server()
 
     def update_server_heartbeat_function(self):
+
+        pipeline = []
         
         while self.is_running:
 
@@ -703,10 +705,14 @@ class GlobalContainer:
             except Exception as e:
                 print(f"Error in server heartbeat function: {e}")
 
-            start_waiting_time = datetime.datetime.now(datetime.timezone.utc)
-            while (datetime.datetime.now(datetime.timezone.utc) - start_waiting_time).total_seconds() < 10:
-                if self.is_running:
-                    time.sleep(1)
+            try:
+                with self.servers_collection.watch(pipeline) as stream:
+                    print("Watching server collection for changes...")
+                    for change in stream:
+                        print("Change detected:", change)
+                    self.update_server_heartbeat_function_inner()
+            except Exception as e:
+                print(f"Error watching collection: {e}")
     
     def revise_vocabulary(self,
                             language) -> bool:
