@@ -28,7 +28,6 @@ function get_user_object() {
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
@@ -51,8 +50,6 @@ function get_user_words() {
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
