@@ -1092,7 +1092,7 @@ class GlobalContainer:
         Get an exercise id for the user from the database.
         """
 
-        sorted_word_ids = sorted(word_ids, key=lambda x: x.lower())
+        sorted_word_ids = sorted([str(word_id) for word_id in word_ids], key=lambda x: x.lower())
         sorted_word_ids_combined = "_".join(sorted_word_ids)
 
         number_of_words_needed = len(word_ids)
@@ -1113,14 +1113,14 @@ class GlobalContainer:
             exercise_id_list = []
 
         if len(exercise_id_list) < MAX_NUMBER_OF_EXERCISES:
-            
+            print("Not enough exercises found, creating new one.")
             exercise_id_list = self.add_to_exercise_id_list(exercise_key,
                                                             word_ids,
                                                             current_learning_language,
                                                             current_level)
 
         else:
-
+            print("Enough exercises found, selecting one.")
             exercise_id_list = self.revise_exercise_id_list(exercise_id_list)
 
         if not exercise_id_list or not len(exercise_id_list):
@@ -1147,7 +1147,7 @@ class GlobalContainer:
         word_values = [self.words_collection.find_one({"_id": word_id}) for word_id in word_ids]
         word_values = [word["word_value"] for word in word_values if word is not None]
         if not len(word_values) == len(word_ids):
-            print(f"Not all word keys found in the database for key '{exercise_key}'.")
+            print(f"Not all word keys found in the database for key '{exercise_key}' (word_values: {word_values}, word_ids: {word_ids}).")
             return None
                 
         inspiration_exercises = self.get_inspiration_exercises(exercise_key)
@@ -1700,23 +1700,23 @@ class GlobalContainer:
 
         print(f"Unlock word response: {unlock_word_response}.")
         
-        words = self.get_user_words(user_id,
+        user_words = self.get_user_words(user_id,
                                     current_learning_language,
                                     False)
         
-        if words is None:
-            print(f"No words found for user {user_id}.")
+        if user_words is None:
+            print(f"No user_words found for user {user_id}.")
             return None, False
         
-        if not len(words):
-            print(f"No words found for user {user_id}.")
+        if not len(user_words):
+            print(f"No user_words found for user {user_id}.")
             return None, False
         
         # calculate the next word based on the last visited times and scores
 
-        next_word_id = next_word(word_ids=[word["_id"] for word in words],
-                                  word_scores=[word["last_scores"] for word in words],
-                                  word_last_visited_times=[word["last_visited_times"] for word in words])
+        next_word_id = next_word(word_ids=[word["word_id"] for word in user_words],
+                                  word_scores=[word["last_scores"] for word in user_words],
+                                  word_last_visited_times=[word["last_visited_times"] for word in user_words])
 
         if next_word_id is None:
             print(f"No next word found for user {user_id}.")
