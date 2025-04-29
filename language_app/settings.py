@@ -84,11 +84,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_AUTH_CLIENT_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_AUTH_CLIENT_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = os.environ.get('GOOGLE_AUTH_REDIRECT_URI')
 
-# STRIPE_PUBLIC_KEY = 'your-public-key-from-stripe'
-# STRIPE_SECRET_KEY = 'your-secret-key-from-stripe'
-# STRIPE_WEBHOOK_SECRET = 'your-webhook-secret-from-stripe'
-# STRIPE_PRICE_ID = 'your-stripe-price-id'
-
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
