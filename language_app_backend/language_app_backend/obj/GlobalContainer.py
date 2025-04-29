@@ -23,7 +23,8 @@ from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               DELETE_SERVER_TIMEOUT,
                               ALLOW_MAIN_SERVER_TIMEOUT,
                               BACKGROUND_THREAD_SLEEP_TIME,
-                              TIMEOUT_TO_CREATE_NEW_EXERCISE)
+                              TIMEOUT_TO_CREATE_NEW_EXERCISE,
+                              POSSIBLE_CRITERIA)
 
 def next_word(word_ids, 
               word_scores, 
@@ -162,6 +163,7 @@ class GlobalContainer:
         "exercise_thumbs_down_collection",
 
         "llm",
+        "possible_criteria",
         
         "last_time_revised_vocabulary",
 
@@ -197,6 +199,7 @@ class GlobalContainer:
         self.exercise_thumbs_down_collection = self.db["exercise_thumbs_down"]
 
         self.llm = llm
+        self.possible_criteria = POSSIBLE_CRITERIA
         self.last_time_revised_vocabulary = {}
 
         self.vocabulary_background_thread = None
@@ -1313,7 +1316,8 @@ class GlobalContainer:
         if was_correct:
             message = "Correct answer."
         else:
-            message = f"Wrong answer. The correct answer was {exercise_criteria}."
+            exercise_criteria_str = self.possible_criteria[exercise_criteria]
+            message = f"Wrong answer. The correct answer was {exercise_criteria_str}."
 
         return True, message, was_correct
 

@@ -24,6 +24,7 @@ DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
 
 NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE = 3
 
+POSSIBLE_CRITERIA = ["a", "b", "c", "d", "e", "f"]
 SUPPORTED_LANGUAGES = {
     "en": "English",
     "es": "Spanish",
