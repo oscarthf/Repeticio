@@ -1,6 +1,7 @@
 __pycache__
 *.egg-info
 build
+staticfiles
 *.env
 db.sqlite3*
 *.pyc

@@ -10,14 +10,11 @@ from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
 
-try:
-    from language_app_backend.util.db import get_global_container
-    from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
-                                                     DO_NOT_CHECK_SUBSCRIPTION,
-                                                     DEFAULT_RATELIMIT,
-                                                     OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
-except ImportError:
-    print("ImportError: language_app_backend not found. ")
+from language_app_backend.util.db import get_global_container
+from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
+                                                    DO_NOT_CHECK_SUBSCRIPTION,
+                                                    DEFAULT_RATELIMIT,
+                                                    OPEN_LANGUAGE_APP_ALLOWED_USER_IDS)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -59,7 +56,11 @@ def check_subscription_pipeline(global_container, user_id) -> bool:
         subscription_active = global_container.get_user_subscription(user_id)
 
     return subscription_active
-    
+
+##########################################################################
+### DOES NOT NEED SUBSCRIPTION ###########################################
+##########################################################################
+
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 def login_view(request):
     if request.user.is_authenticated:
@@ -144,6 +145,10 @@ def customer_portal(request):
     )
     return redirect(session.url)
 
+##########################################################################
+### DOES NEED SUBSCRIPTION ###############################################
+##########################################################################
+
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
 def app_settings(request):
@@ -176,25 +181,14 @@ def home(request):
     
     global_container = get_global_container()
     
-    language = global_container.get_user_language(user_id)
-
-    if language is None:
-
-        data = request.GET
-        if not data:
-            return redirect('select_language')
-        
-        language = data.get("language")
-        if not language:
-            return redirect('select_language')
-        
     ######################
 
-    success = global_container.create_user_if_needed(user_id,
-                                                     language)
+    did_create_user = global_container.create_user_if_needed(user_id)
+
+    success, redirect_view = global_container.redirect_if_new_user(user_id)
     
-    if not success:
-        return redirect('select_language')
+    if not success:# could be "select_ui_language" or "select_learning_language"
+        return redirect(redirect_view)
     
     ######################
 
@@ -207,22 +201,50 @@ def home(request):
 
     return render(request, 'home.html')
 
+
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
-def select_language(request):
+def select_ui_language(request):
     if not request.user.is_authenticated:
         return redirect('login')
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     global_container = get_global_container()
-    languages = global_container.get_languages()
+    
+    did_create_user = global_container.create_user_if_needed(user_id)
 
-    if not languages:
-        return JsonResponse({"error": "Failed to get languages"}, status=500)
+    supported_languages = global_container.get_supported_languages()
+
+    if not supported_languages:
+        return JsonResponse({"error": "Failed to get supported_languages"}, status=500)
     
     return render(request, 'select_language.html',
-                  {"languages": languages})
+                  {"languages": supported_languages,
+                   "title_string": "What language would you like instructions in?",
+                   "is_set_ui_language": "true"})
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def select_learning_language(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+    
+    did_create_user = global_container.create_user_if_needed(user_id)
+
+    supported_languages = global_container.get_supported_languages()
+
+    if not supported_languages:
+        return JsonResponse({"error": "Failed to get supported_languages"}, status=500)
+    
+    return render(request, 'select_language.html',
+                  {"languages": supported_languages,
+                   "title_string": "What language would you like to practice?",
+                   "is_set_ui_language": "false"})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -362,6 +384,60 @@ def apply_thumbs_up_or_down(request):
                                                         thumbs_up)
     
     return JsonResponse({"success": success}, status=200)
+
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def set_learning_language(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+
+    data = request.GET
+
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    if not data.get("language"):
+        return JsonResponse({"error": "Missing language"}, status=400)
+    
+    learning_language = data.get("language")
+
+    success = global_container.set_learning_language(user_id, learning_language)
+    if not success:
+        return JsonResponse({"error": "Failed to set learning language"}, status=500)
+    
+    return JsonResponse({"success": True,
+                         "message": "Learning language set successfully"}, status=200)
+    
+@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
+@login_required
+def set_ui_language(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    user_id = request.user.email
+    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
+        return HttpResponse("You are not allowed to access this page.", status=403)
+    global_container = get_global_container()
+
+    data = request.GET
+
+    if not data:
+        return JsonResponse({"error": "No data provided"}, status=400)
+    
+    if not data.get("language"):
+        return JsonResponse({"error": "Missing language"}, status=400)
+    
+    ui_language = data.get("language")
+
+    success = global_container.set_ui_language(user_id, ui_language)
+    if not success:
+        return JsonResponse({"error": "Failed to set UI language"}, status=500)
+    
+    return JsonResponse({"success": True,
+                         "message": "UI language set successfully"}, status=200)
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required

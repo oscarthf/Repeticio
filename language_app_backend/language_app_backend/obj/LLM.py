@@ -2,25 +2,21 @@
 from typing import Dict, Any, Optional, List
 import json
 
-from ..util.prompts.one_blank import prompts as ONE_BLANK_EXERCISE_PROMPTS
-from ..util.prompts.two_blank import prompts as TWO_BLANK_EXERCISE_PROMPTS
-from ..util.prompts.vocabulary import (
-    INITIAL_WORD_PROMPT,
-)
-from ..util.constants import (
-    REAL_LANGUAGE_NAMES,
-    OPENAI_MODEL_NAME,
-    MAX_WORD_LENGTH,
-)
+import numpy as np
+
+from ..util.prompts.one_blank import start_prompt as ONE_BLANK_EXERCISE_START_PROMPT
+from ..util.prompts.one_blank import inspiration_exercises as ONE_BLANK_EXERCISE_INSPIRATION_EXERCISES
+from ..util.prompts.two_blank import start_prompt as TWO_BLANK_EXERCISE_START_PROMPT
+from ..util.prompts.two_blank import inspiration_exercises as TWO_BLANK_EXERCISE_INSPIRATION_EXERCISES
+from ..util.prompts.vocabulary import INITIAL_WORD_PROMPT
+from ..util.constants import (SUPPORTED_LANGUAGES,
+                              OPENAI_MODEL_NAME,
+                              MAX_WORD_LENGTH)
 from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:
 
-    real_language_name = REAL_LANGUAGE_NAMES[language]
-
-    language_str = f"{real_language_name} ({language})"
-
-    return language_str
+    return SUPPORTED_LANGUAGES[language]
 
 def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
 
@@ -30,8 +26,8 @@ def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
     
     words_so_far = set()
 
-    for level in json_data:
-        for word in json_data[level]:
+    for level, word_list in json_data.items():
+        for word in word_list:
             if word in words_so_far:
                 json_data[level].remove(word)
             else:
@@ -39,7 +35,9 @@ def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
 
     return json_data
 
-def validate_exercise(exercise: Dict[str, Any], word_values: list) -> bool:
+def validate_exercise(exercise: Dict[str, Any], 
+                      word_values: List[str],
+                      possible_criteria: List[str]) -> bool:
 
     # {
     #     "word_values": ["grande"],
@@ -55,7 +53,7 @@ def validate_exercise(exercise: Dict[str, Any], word_values: list) -> bool:
     #         "c) estrecho",
     #         "d) corto"
     #     ],
-    #     "criteria": 0
+    #     "criteria": "a"
     # }
 
     number_of_keys = len(exercise.keys())
@@ -126,12 +124,29 @@ def validate_exercise(exercise: Dict[str, Any], word_values: list) -> bool:
             print(f"Invalid final string length in output: {len(final_string)}")
             return False
     
-    # check if the number of criteria is correct
-    if not isinstance(output_criteria, int):
+    if not isinstance(output_criteria, str):
+        print(f"Invalid criteria in output: {output_criteria}")
+        return False
+    
+    if not output_criteria in possible_criteria:
         print(f"Invalid criteria in output: {output_criteria}")
         return False
     
     return True
+
+def get_inspiration_prompt(inspiration_exercises, is_one_blank):
+
+    num_inspiration_exercises_so_far = len(inspiration_exercises)
+    if num_inspiration_exercises_so_far < 3:
+        for e_i in range(3 - num_inspiration_exercises_so_far):
+            if is_one_blank:
+                inspiration_exercise = ONE_BLANK_EXERCISE_INSPIRATION_EXERCISES[e_i]
+            else:
+                inspiration_exercise = TWO_BLANK_EXERCISE_INSPIRATION_EXERCISES[e_i]
+
+    inspiration_prompt = ",\n".join([json.dumps(exercise, indend=4) for exercise in inspiration_exercises])
+
+    return inspiration_prompt
 
 class LLM:
 
@@ -147,16 +162,17 @@ class LLM:
 
     def create_exercise(self,
                         word_values,
-                        exercise_type,
                         language,
-                        level) -> Dict[Any, Any]:
+                        level,
+                        inspiration_exercises,
+                        possible_criteria:List[str] = ['a', 'b', 'c', 'd', 'e']) -> Dict[Any, Any]:
         """
         Create an exercise for the user from the database.
         """
 
         exercise = {
             "word_values": word_values,
-            "exercise_type": exercise_type,
+            "number_of_words": len(word_values),
             "language": language,
             "level": level,
             "initial_strings": [],
@@ -165,34 +181,32 @@ class LLM:
             "criteria": []
         }
 
-        exercise_index = int(exercise_type.split("_")[1])
+        is_one_blank = False
 
         if len(word_values) == 1:
-            query_input = ONE_BLANK_EXERCISE_PROMPTS[exercise_index]
+            is_one_blank = True
+            query_input = ONE_BLANK_EXERCISE_START_PROMPT
+            query_input += get_inspiration_prompt(inspiration_exercises, True)
         elif len(word_values) == 2:
-            query_input = TWO_BLANK_EXERCISE_PROMPTS[exercise_index]
+            query_input = TWO_BLANK_EXERCISE_START_PROMPT
+            query_input += get_inspiration_prompt(inspiration_exercises, False)
         else:
             print("Invalid number of words for exercise.")
             return None
 
         language_str = get_language_string(language)
         level_str = f"Level {level}"
-        words_str = ", ".join(word_values)
+
+        if is_one_blank:
+            words_str = f"word: {word_values[0]}"
+        else:
+            focus_word = np.random.choice(word_values)
+            words_str = f"word: {focus_word}, and use this word somewhere in the exercise too."
 
         query_input = query_input.replace("[TARGET LANGUAGE]", language_str)
         query_input = query_input.replace("[TARGET LEVEL]", level_str)
         query_input = query_input.replace("[TARGET WORDS]", words_str)
 
-        query_input += "\nAnswers in the examples may be wrong, please respond with a correct answer in the 'criteria' field."
-        query_input += "\nAgain, the words in your question should be:\n"
-        query_input += f"{words_str}"
-        query_input += "\n\nPlease respond with a JSON object with the following keys:\n"
-        query_input += "- word_values\n"
-        query_input += "- initial_strings\n"
-        query_input += "- middle_strings\n"
-        query_input += "- final_strings\n"
-        query_input += "- criteria\n"
-        
         response = self.client.responses.create(
             model=OPENAI_MODEL_NAME,
             input=query_input
@@ -214,7 +228,9 @@ class LLM:
             print(f"Error decoding JSON: {e}")
             return None
         
-        is_valid = validate_exercise(json_data, word_values)
+        is_valid = validate_exercise(json_data, 
+                                     word_values,
+                                     possible_criteria=possible_criteria)
 
         if not is_valid:
             print("Invalid exercise format")
@@ -223,7 +239,10 @@ class LLM:
         exercise["initial_strings"] = json_data["initial_strings"]
         exercise["middle_strings"] = json_data["middle_strings"]
         exercise["final_strings"] = json_data["final_strings"]
-        exercise["criteria"] = json_data["criteria"]
+        
+        criteria = json_data["criteria"].lower()
+        criteria = possible_criteria.index(criteria)
+        exercise["criteria"] = criteria
         
         return exercise
     
@@ -235,7 +254,7 @@ class LLM:
         Get a new word for the given language which is not already in the vocabulary.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         
@@ -245,8 +264,6 @@ class LLM:
         query_input = f"Please suggest a new word in {language_str} that is not already in the vocabulary: {words_str}."
         query_input += "\n\nPlease respond with only one word."
         query_input += "\n\nNo explanation is needed, just the word."
-        
-
 
         response = self.client.responses.create(
             model=OPENAI_MODEL_NAME,
@@ -280,7 +297,7 @@ class LLM:
         Get the level of the word for the given language.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         
@@ -317,7 +334,7 @@ class LLM:
         Get the initial words for the given language.
         """
 
-        if not language in REAL_LANGUAGE_NAMES:
+        if not language in SUPPORTED_LANGUAGES:
             print(f"Language '{language}' is not supported.")
             return None
         
@@ -325,12 +342,14 @@ class LLM:
 
         query_input = INITIAL_WORD_PROMPT.replace("[TARGET LANGUAGE]", language_str)
 
+        print(f"query_input: {query_input}")
+
         response = self.client.responses.create(
             model=OPENAI_MODEL_NAME,
             input=query_input
         )
 
-        print(response.output_text)
+        print(f"response.output_text: {response.output_text}")
 
         if not "{" in response.output_text or not "}" in response.output_text:
             print("Invalid response format")
@@ -340,6 +359,7 @@ class LLM:
         end_index = response.output_text.rfind("}")
 
         json_string = response.output_text[start_index:end_index + 1]
+
         try:
             json_data = json.loads(json_string)
         except json.JSONDecodeError as e:
@@ -347,29 +367,35 @@ class LLM:
             return None
         
         number_of_keys = len(json_data.keys())
-
-        if number_of_keys != 1:
+        
+        if number_of_keys != 3:
             print(f"Invalid number of keys in JSON: {number_of_keys}")
             return None
         
-        json_data = {language: json_data[list(json_data.keys())[0]]}
-        
-        if len(json_data[language]) != 3:
-            print(f"Invalid number of levels in JSON: {len(json_data[language])}")
-            return None
+        parsed_data = {}
+        cefr_levels = ["a1", "a2", "b1"]
 
-        for level in json_data[language]:
-            if len(json_data[language][level]) < 5:
-                print(f"Invalid number of words in level {level}: {len(json_data[language][level])}")
+        for level, word_list in json_data.items():
+
+            if not level.lower() in cefr_levels:
+                print(f"Invalid level in JSON: {level}")
+                return None
+
+            if len(word_list) < 5:
+                print(f"Invalid number of words in level {level}: {len(word_list)}")
                 return None
             
-            for word in json_data[language][level]:
+            for word in word_list:
                 if not isinstance(word, str):
                     print(f"Invalid word format in level {level}: {word}")
                     return None
                 
-        json_data = remove_duplicate_words(json_data)
+            cefr_level_index = cefr_levels.index(level.lower())
 
-        return json_data
+            parsed_data[cefr_level_index] = word_list
+            
+        parsed_data = remove_duplicate_words(parsed_data)
+
+        return {language: parsed_data}
 
         

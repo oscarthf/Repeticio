@@ -6,6 +6,10 @@ VOCABULARY_REVISION_ITERATIONS = 3
 VOCABULARY_REVISION_INTERVAL = 4 * 60 * 60 # 4 hours
 MAX_CONCURRENT_EXERCISE_CREATIONS = 3
 MAX_WORD_LENGTH = 32
+DELETE_SERVER_TIMEOUT = 60# time to delete server if heartbeat has not been received
+ALLOW_MAIN_SERVER_TIMEOUT = 10# time for server to wait until it is alowed to be the main server
+BACKGROUND_THREAD_SLEEP_TIME = 30# time for server to wait until it is alowed to be the main server
+TIMEOUT_TO_CREATE_NEW_EXERCISE = 30# time to wait until a new exercise is created
 
 # OPENAI_MODEL_NAME = "gpt-4.1"
 OPENAI_MODEL_NAME = "gpt-4o"
@@ -18,21 +22,17 @@ OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
 CHECK_SUBSCRIPTION_INTERVAL = 10 * 60  # 10 minutes
 DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
 
-SUPPORTED_LANGUAGES = [
-    # "en",  # English
-    "es",  # Spanish
-    # "fr",  # French
-    # "de",  # German
-    # "it",  # Italian
-    # "pt",  # Portuguese
-    # "ru",  # Russian
-]
+NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE = 5
 
-REAL_LANGUAGE_NAMES = {
+SUPPORTED_LANGUAGES = {
+    "en": "English",
     "es": "Spanish",
     "fr": "French",
     "de": "German",
     "it": "Italian",
     "pt": "Portuguese",
     "ru": "Russian",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "ko": "Korean",
 }

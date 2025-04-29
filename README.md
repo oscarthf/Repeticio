@@ -13,6 +13,8 @@ Stripe payments
 OpenAI large language model API
 ```
 
+## To do:
+
 ## Environment variables needed:
 
 ```
@@ -30,23 +32,22 @@ OPEN_LANGUAGE_APP_DEBUG=<"True" if local, "False" if deployment>
 DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ```
 
-## For Digital Ocean App Platform deployment:
+## To create .env file
 
 ```
-0. Clone this repo and generate your own django secret key for your .env file (create a blank text file next to manage.py called .env):
-    from django.core.management.utils import get_random_secret_key  
-    secret_key = get_random_secret_key()
-1. Create app in app platform, link to github.
-2. Choose repo and branch.
-3. Choose hardware shape and port for BOTH instances.
-4. Set app level env vars (from .env is convenient), not instance level.
-5. Build for first time.
-6. Add domain name:
-    Enter domain name
-    Select "We manage your domain"
-    Copy name servers into wherever you got the domain name
-    Wait for update, could take a while but probably not hours (they say could take 72 hours)
-7. 
+0. create a blank text file called ".env" with no other extension.
+1. Copy the above environment variables and remove the place holders.
+2. Follow the steps bellow to obtain the above environment variables.
+```
+
+## To create Google Login API Credentials:
+
+```
+```
+
+## To create a MongoDB Atlas Database:
+
+```
 ```
 
 ## To create Stripe Webhook (for subscription payments):
@@ -62,14 +63,55 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 3. Copy your secret key, public key, price id and webhook secret to your .env file
 ```
 
-## To build with Docker Desktop:
+## To create Django Secret Key:
 
 ```
-0. Clone this repository with the command:
+0. Install django locally (many versions should work for this).
+1. Generate your own django secret key for your .env file (create a blank text file next to manage.py called .env):
+    from django.core.management.utils import get_random_secret_key  
+    secret_key = get_random_secret_key()
+```
+
+## For Local Deployment (With Docker):
+
+```
+0. Clone this repo and enter the project folder using the command:
     git clone https://github.com/oscarthf/OpenLanguageApp
+    cd <path/to/OpenLanguageApp>
 1. Follow the steps above to set up your .env file
 2. Build the container using the command:
     docker build -t language_app:latest .
 3. Run the container using the following command:
     docker run -p 8000:8000 language_app:latest
+```
+
+## For Local Deployment (No Docker):
+
+```
+0. Clone this repo and enter the project folder using the command:
+    git clone https://github.com/oscarthf/OpenLanguageApp
+    cd <path/to/OpenLanguageApp>
+1. Follow the steps above to set up your .env file.
+2. Run the following commands to set up the server:
+    pip install -r requirements.txt
+    python manage.py migrate
+    python manage.py collectstatic --noinput
+3. Run the following command to start the server:
+    python manage.py runserver --insecure 0.0.0.0:8000
+```
+
+## For Digital Ocean App Platform deployment:
+
+```
+0. Create app in app platform, link to github.
+1. Choose repo and branch.
+2. Choose hardware shape and port for BOTH instances.
+3. Set app level env vars (from .env is convenient), not instance level.
+4. Build for first time.
+5. Add domain name:
+    Enter domain name
+    Select "We manage your domain"
+    Copy name servers into wherever you got the domain name
+    Wait for update, could take a while but probably not hours (they say could take 72 hours)
+6 (optional). Purchase a static IP and restrict MongoDB access to this IP.
 ```

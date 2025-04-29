@@ -71,15 +71,15 @@ function get_user_words() {
 function render_user_object() {    
 
     // user_entry = {
-    //     "user_id": user_id, 
+    //     "user_id": "oscarthf@gmail.com", 
     //     "xp": 0,
-    //     "current_language": language,
+    //     "current_learning_language": "es",
     //     "subscription_status": False,
     //     "last_time_checked_subscription": 0,
     //     "last_created_exercise_id": "",
     //     "last_created_exercise_time": 0,
-    //     "languages": {
-    //         language: {
+    //     "learning_languages": {
+    //         "es": {
     //             "current_level": 0,
     //         }
     //     }
@@ -94,7 +94,7 @@ function render_user_object() {
 
     var html = `<p>User ID: ${user.user_id}</p>`;
     html += `<p>XP: ${user.xp}</p>`;
-    html += `<p>Current Language: ${user.current_language}</p>`;
+    html += `<p>Current Language: ${user.current_learning_language}</p>`;
     html += `<p>Subscription Status: ${user.subscription_status ? "Active" : "Inactive"}</p>`;
     html += `<p>Last Time Checked Subscription: ${new Date(user.last_time_checked_subscription * 1000).toLocaleString()}</p>`;
     html += `<p>Last Created Exercise ID: ${user.last_created_exercise_id}</p>`;
@@ -114,7 +114,7 @@ function render_user_object() {
 function render_user_words() {
 
     // word_entry = {
-    //     "_id": word_key,
+    //     "_id": word_id,
     //     "user_id": user_id,
     //     "language": language,
     //     "last_visited_times": [],

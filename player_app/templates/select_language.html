@@ -2,7 +2,7 @@
 
 {% load static %} 
 
-{% block title %}Open Language App | Select a Language{% endblock %} 
+{% block title %}{{ title_string }}{% endblock %} 
 {% block content %}
 
     <div class="container mt-5">
@@ -10,7 +10,7 @@
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow-lg rounded">
                     <div class="card-body">
-                        <h4 class="secondary_title text-center mb-4">Select a Language</h4>    
+                        <h4 class="secondary_title text-center mb-4">{{ title_string }}</h4>    
                         <div id="language_list" class="mb-4"></div>
                     </div>
                 </div>
@@ -23,11 +23,15 @@
     <script>
         
         let home_url = "{% url 'home' %}";
+        let select_learning_language_url = "{% url 'select_learning_language' %}";
+        let set_learning_language_url = "{% url 'set_learning_language' %}";
+        let set_ui_language_url = "{% url 'set_ui_language' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
+        let is_set_ui_language = {{ is_set_ui_language }};
         let languages = [
             {% for language in languages %}
-                ["{{ language.code }}", "{{ language.name }}"]
+                ["{{ language.code }}", "{{ language.name }}"],
             {% endfor %}
         ];
 
