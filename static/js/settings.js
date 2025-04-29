@@ -44,7 +44,7 @@ function render_user_object() {
     html += `<p>Languages:</p><ul>`;
 
     for (let lang in user.learning_languages) {
-        html += `<li>${lang} - Current Level: ${user.languages[lang].current_level}</li>`;
+        html += `<li>${lang} - Current Level: ${user.learning_languages[lang].current_level}</li>`;
     }
 
     html += `</ul>`;
