@@ -16,7 +16,6 @@ Instructions:
 - Output ONLY a JSON object following this format:
 
 {
-    "word_values": [the word you were provided (to verify you used the correct one)],
     "initial_strings": [sentence with blank],
     "middle_strings": [instruction line],
     "final_strings": [list of answer choices],
@@ -29,7 +28,6 @@ Here are 3 examples (may not be in [TARGET LANGUAGE], but follow the same format
 inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
 
 {
-    "word_values": ["ir"],
     "initial_strings": [
         "Nosotros ___ al parque los domingos."
     ],
@@ -42,11 +40,10 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "c) voy",
         "d) vas"
     ],
-    "criteria": "a"
+    "criteria": ["a"]
 }, 
 
 {
-    "word_values": ["leer"],
     "initial_strings": [
         "Ella ___ un libro interesante."
     ],
@@ -60,11 +57,10 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "d) leo"
         "e) lee",
     ],
-    "criteria": "e"
+    "criteria": ["e"]
 },
 
 {
-    "word_values": ["correr"],
     "initial_strings": [
         "Tú ___ muy rápido."
     ],
@@ -77,7 +73,7 @@ inspiration_exercises = [# MUST HAVE AT LEAST 3 TO START!!!
         "c) corremos",
         "d) corren"
     ],
-    "criteria": "b"
+    "criteria": ["b"]
 }
 
 ]
