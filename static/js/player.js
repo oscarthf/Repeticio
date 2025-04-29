@@ -208,7 +208,6 @@ function render_results() {
     }
 
     var results_html = "<div class='results'>";
-    results_html += "<h3>Results for Exercise ID: " + GLOBALS.current_exercise_id + "</h3>";
     
     var result = GLOBALS.current_exercise_results;
     results_html += "<div class='result'>";

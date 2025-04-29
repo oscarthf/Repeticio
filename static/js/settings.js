@@ -28,8 +28,8 @@ function get_user_object() {
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 GLOBALS.user_object = response.user;
@@ -51,7 +51,7 @@ function get_user_words() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
+        if (xhr.readyState == 4 && xhr.status == 200) {
             var response = JSON.parse(xhr.responseText);
             if (response.success) {
                 console.log("User words retrieved successfully:", response.words);
