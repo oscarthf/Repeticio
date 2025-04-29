@@ -91,11 +91,11 @@ def empty_user(user_id,
         "last_time_checked_subscription": 0,
         "last_created_exercise_id": "",
         "last_created_exercise_time": 0,
-        # "learning_languages": {
+        "learning_languages": {
         #     learning_language: {
         #         "current_level": 0,
         #     }
-        # }
+        }
     }
 
     return user_entry
@@ -522,9 +522,31 @@ class GlobalContainer:
         
         return current_learning_language
     
+    def set_ui_language(self,
+                          user_id, 
+                          ui_language) -> bool:
+        
+        """
+        Set the user's ui_language in the database.
+        """
+
+        if ui_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{ui_language}' for user {user_id}.")
+            return False
+        
+        self.users_collection.update_one(
+            {"_id": user_id},
+            {"$set": {
+                "ui_language": ui_language
+            }}
+        )
+        print(f"User {user_id} UI language set to '{ui_language}'.")
+
+        return True
+    
     def set_learning_language(self,
                               user_id, 
-                             learning_language) -> bool:
+                              learning_language) -> bool:
         
         """
         Set the user's learning_language in the database.
@@ -542,6 +564,30 @@ class GlobalContainer:
         )
         print(f"User {user_id} learning language set to '{learning_language}'.")
 
+        # check if learning_language is in user["learning_languages"]:
+        user = self.users_collection.find_one({"_id": user_id})
+
+        if not user:
+            print(f"User {user_id} not found in the database.")
+            return False
+        
+        learning_languages = user.get("learning_languages", None)
+
+        if learning_languages is None:
+            learning_languages = {}
+
+        if learning_language not in learning_languages:
+            learning_languages[learning_language] = {
+                "current_level": 0,
+            }
+
+        self.users_collection.update_one(
+            {"_id": user_id},
+            {"$set": {
+                "learning_languages": learning_languages
+            }}
+        )
+
         return True
     
     def create_user_if_needed(self, 
@@ -555,8 +601,8 @@ class GlobalContainer:
         if not user:
             print(f"User {user_id} not found in the database.")
             new_user = empty_user(user_id, 
-                                ui_language,
-                                learning_language)
+                                    ui_language,
+                                    learning_language)
             self.users_collection.insert_one(new_user)
             
         ######################
