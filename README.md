@@ -16,6 +16,13 @@ OpenAI large language model API
 
 ## To do:
 
+```
+* Test subscription logic
+* Test main server election logic
+* Improve prompting
+* Allow LLM to check if answer to exercise is not correct (or multiple answers are correct)
+```
+
 ## Environment variables needed:
 
 ```
@@ -38,7 +45,7 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ## To create .env file
 
 ```
-0. create a blank text file called ".env" with no other extension.
+0. Create a blank text file called ".env" with no other extension.
 1. Copy the above environment variables and remove the place holders.
 2. Follow the steps bellow to obtain the above environment variables.
 ```
@@ -46,16 +53,50 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ## To create Google Login API Credentials:
 
 ```
+0. Go to https://console.cloud.google.com/
+1. Create a new project or select an existing one.
+2. Navigate to "APIs & Services" > "Credentials".
+3. Click "Create Credentials" > "OAuth client ID".
+4. Configure the consent screen (select External if public).
+    - Fill in app name, support email, and add scopes (e.g., email, profile).
+    - Add your domain and redirect URIs under "Authorized domains".
+5. Choose application type: "Web Application".
+6. Set "Authorized redirect URIs" to:
+    - http://localhost:8000/accounts/google/login/callback/
+    - or your deployed domain callback URL
+7. Click "Create" and copy the **Client ID** and **Client Secret** into your `.env` file:
+    GOOGLE_AUTH_CLIENT_KEY=<Client ID>
+    GOOGLE_AUTH_CLIENT_SECRET=<Client Secret>
 ```
 
 ## To create Google AdSense Credentials:
 
 ```
+0. Go to https://www.google.com/adsense/start/
+1. Sign in with your Google Account and apply for AdSense approval.
+2. After approval, go to "Ads" > "By site", and add your domain.
+3. Follow instructions to verify site ownership and enable auto ads.
+4. Once approved, go to "Account" > "Account information" to find your:
+    - Google AdSense Publisher ID (format: ca-pub-XXXXXXXXXXXXXXXX)
+5. Add it to your .env file:
+    GOOGLE_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXXXXXXXX
+
 ```
 
 ## To create a MongoDB Atlas Database:
 
 ```
+0. Go to https://www.mongodb.com/cloud/atlas and create a free account.
+1. Create a new project, then "Build a Database" (start with free shared cluster).
+2. Choose a cloud provider and region.
+3. After cluster creation, click "Connect" > "Drivers".
+4. Choose "Python" and copy the connection string.
+5. Add a new database user (username + password) and set permissions.
+6. In Network Access, allow access from:
+    - Your IP address (for local testing)
+    - 0.0.0.0/0 (for public access — not recommended for production)
+7. Replace `<password>` and `<dbname>` in the connection string and add to your `.env`:
+    LANGUAGE_APP_DB_CONNECTION_STRING=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/<dbname>?retryWrites=true&w=majority
 ```
 
 ## To create Stripe Webhook (for subscription payments):
