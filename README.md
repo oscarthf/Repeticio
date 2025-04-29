@@ -10,6 +10,7 @@ Heroku style django/gunicorn/whitenoise server hosted using Digital Ocean App Pl
 MongoDB Atlas as database
 Google login
 Stripe payments
+Google Ads
 OpenAI large language model API
 ```
 
@@ -29,7 +30,9 @@ STRIPE_WEBHOOK_SECRET=<STRIPE_WEBHOOK_SECRET>
 STRIPE_PRICE_ID=<STRIPE_PRICE_ID, not product id>
 FRONTEND_URL=<STRIPE WEBHOOK FRONTEND_URL>
 OPEN_LANGUAGE_APP_DEBUG=<"True" if local, "False" if deployment>
+GOOGLE_ADSENSE_CLIENT_ID=<GOOGLE_ADSENSE_CLIENT_ID>
 DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
+
 ```
 
 ## To create .env file
@@ -41,6 +44,11 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ```
 
 ## To create Google Login API Credentials:
+
+```
+```
+
+## To create Google AdSense Credentials:
 
 ```
 ```
