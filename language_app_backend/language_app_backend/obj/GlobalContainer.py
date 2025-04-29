@@ -1161,7 +1161,8 @@ class GlobalContainer:
                                                     current_learning_language,
                                                     current_level,
                                                     inspiration_exercises)
-                break
+                if exercise is not None:
+                    break
             except Exception as e:
                 print(f"Error creating exercise for key '{exercise_key}': {e}. Retrying... (Probably OpenAI API rate limit exceeded)")
                 time.sleep(10)
