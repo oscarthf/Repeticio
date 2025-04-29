@@ -390,7 +390,7 @@ class GlobalContainer:
         
         # self.servers_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
         self.words_collection.create_index([('language', PY_MONGO_ASCENDING), ('level', PY_MONGO_ASCENDING)])
-        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('is_locked', PY_MONGO_ASCENDING)])
+        self.user_words_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('word_id', PY_MONGO_ASCENDING)], unique=True)
         self.user_thumbs_collection.create_index([('user_id', PY_MONGO_ASCENDING), ('exercise_id', PY_MONGO_ASCENDING)], unique=True)
         # self.users_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
         # self.exercises_id_lists_collection.create_index([('_id', PY_MONGO_ASCENDING)], unique=True)
@@ -603,7 +603,6 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             new_user = empty_user(user_id)
             self.users_collection.insert_one(new_user)
-            self.add_a1_words_to_user(user_id)
             print(f"User {user_id} created in the database.")
 
         return False
