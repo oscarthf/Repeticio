@@ -124,6 +124,10 @@ def validate_exercise(exercise: Dict[str, Any],
         if len(final_string) < 1 or len(final_string) > 100:
             print(f"Invalid final string length in output: {len(final_string)}")
             return False
+        
+
+    if isinstance(output_criteria, list) and len(output_criteria) >= 1:
+        output_criteria = output_criteria[0]
     
     if not isinstance(output_criteria, str):
         print(f"Invalid criteria in output: {output_criteria}")
