@@ -55,10 +55,9 @@
     <script src="{% static 'js/common.js' %}"></script>
     
     <script>
-        
+        let user = JSON.parse('{{ user_object_json|escapejs }}');
+        let user_words = JSON.parse('{{ user_words_json|escapejs }}');
         let home_url = "{% url 'home' %}";
-        let get_user_object_url = "{% url 'get_user_object' %}";
-        let get_user_words_url = "{% url 'get_user_words' %}";
         let user_name = "{{ user.username }}";
         let user_id = "{{ user.email }}";
 

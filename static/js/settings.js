@@ -1,15 +1,12 @@
-
+// let user = JSON.parse('{{ user_object_json|escapejs }}');
+// let user_words = JSON.parse('{{ user_words_json|escapejs }}');
 // let home_url = "{% url 'home' %}";
-// let get_user_object_url = "{% url 'get_user_object' %}";
-// let get_user_words_url = "{% url 'get_user_words' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
 
 let D = document;
 
 function Globals() {
-    this.user_object = null;
-    this.user_words = null;
     this.user_object_wrapper = D.getElementById("user_object_wrapper");
     this.user_words_wrapper = D.getElementById("user_words_wrapper");
 }
@@ -17,52 +14,7 @@ function Globals() {
 GLOBALS = new Globals();
 
 function init() {
-    get_user_object();
-    get_user_words();
     init_settings_wrapper();
-}
-
-function get_user_object() {
-    
-    var url = get_user_object_url;
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            var response = JSON.parse(xhr.responseText);
-            if (response.success) {
-                GLOBALS.user_object = response.user;
-                console.log("User object retrieved successfully:", GLOBALS.user_object);
-            } else {
-                console.error("Error retrieving user object:", response.error);
-            }
-        } else {
-            console.error("Request failed with status:", xhr.status);
-        }
-    };
-    xhr.send();
-}
-
-function get_user_words() {
-
-    var url = get_user_words_url;
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4 && xhr.status == 200) {
-            var response = JSON.parse(xhr.responseText);
-            if (response.success) {
-                console.log("User words retrieved successfully:", response.words);
-            } else {
-                console.error("Error retrieving user words:", response.error);
-            }
-        } else {
-            console.error("Request failed with status:", xhr.status);
-        }
-    }
-    xhr.send();
 }
 
 function render_user_object() {    
@@ -81,13 +33,6 @@ function render_user_object() {
     //         }
     //     }
     // }
-
-    if (GLOBALS.user_object == null) {
-        GLOBALS.user_object_wrapper.innerHTML = "<p>No user object available.</p>";
-        return;
-    }
-
-    var user = GLOBALS.user_object;
 
     var html = `<p>User ID: ${user.user_id}</p>`;
     html += `<p>XP: ${user.xp}</p>`;
@@ -119,14 +64,14 @@ function render_user_words() {
     //     "is_locked": True
     // }
 
-    if (GLOBALS.user_words == null) {
+    if (user_words == null) {
         GLOBALS.user_words_wrapper.innerHTML = "<p>No user words available.</p>";
         return;
     }
 
     var html = "<ul>";
 
-    for (let word of GLOBALS.user_words) {
+    for (let word of user_words) {
         html += `<li>${word.word} - Last visited: ${word.last_visited_times.join(", ")}</li>`;
     }
 

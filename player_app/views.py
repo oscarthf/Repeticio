@@ -1,5 +1,6 @@
 
 import datetime
+import json
 
 import stripe
 from django.conf import settings
@@ -168,7 +169,23 @@ def app_settings(request):
 
     ######################
 
-    return render(request, "settings.html")
+    user_object = global_container.get_user_object(user_id)
+    if user_object is None:
+        user_object = {}
+
+    user_object_json = json.dumps(user_object, ensure_ascii=False)
+
+    user_words = global_container.get_user_words(user_id, 
+                                                  user_object.get("learning_language", ""), 
+                                                  False)
+    
+    if user_words is None:
+        user_words = []
+
+    user_words_json = json.dumps(user_words, ensure_ascii=False)
+
+    return render(request, "settings.html", {"user_object_json": user_object_json,
+                                             "user_words_json": user_words_json})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
@@ -320,36 +337,6 @@ def create_new_exercise(request):
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
-def get_user_object(request):
-    
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "User not authenticated"}, status=401)
-    user_id = request.user.email
-
-    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
-        return HttpResponse("You are not allowed to access this page.", status=403)
-    
-    global_container = get_global_container()
-    
-    ######################
-
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
-
-    if not is_subscribed:
-        return JsonResponse({"error": "User not subscribed"}, status=403)
-    
-    ######################
-    
-    user_object = global_container.get_user_object(user_id)
-
-    if user_object is None:
-        return JsonResponse({"error": "Failed to get user object"}, status=500)
-    
-    return JsonResponse({"success": True,
-                         "user": user_object}, status=200)
-
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
-@login_required
 def apply_thumbs_up_or_down(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -480,42 +467,3 @@ def submit_answer(request):
     return JsonResponse({"success": True,
                          "message": message,
                          "correct": correct}, status=200)
-
-@ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
-@login_required
-def get_user_words(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "User not authenticated"}, status=401)
-    user_id = request.user.email
-    if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
-        return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
-    
-    ######################
-
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
-
-    if not is_subscribed:
-        return JsonResponse({"error": "User not subscribed"}, status=403)
-
-    ######################
-    
-    data = request.GET
-    if not data:
-        return JsonResponse({"error": "No data provided"}, status=400)
-    
-    language = data.get("language")
-    is_locked = data.get("is_locked")
-    
-    if not language or is_locked is None:
-        return JsonResponse({"error": "Missing language or is_locked"}, status=400)
-    
-    is_locked = True if is_locked.lower() == "true" else False
-    
-    words = global_container.get_user_words(user_id, language, is_locked)
-
-    if words is None:
-        return JsonResponse({"error": "Failed to get user words"}, status=500)
-    
-    return JsonResponse({"success": True,
-                         "words":words}, status=200)

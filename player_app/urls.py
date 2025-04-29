@@ -20,9 +20,7 @@ urlpatterns = [
 
     path('create_new_exercise', views.create_new_exercise, name='create_new_exercise'),
     path('get_created_exercise', views.get_created_exercise, name='get_created_exercise'),
-    path('get_user_object', views.get_user_object, name='get_user_object'),
     path('submit_answer', views.submit_answer, name='submit_answer'),
-    path('get_user_words', views.get_user_words, name='get_user_words'),
     path('apply_thumbs_up_or_down', views.apply_thumbs_up_or_down, name='apply_thumbs_up_or_down'),
 
     path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
