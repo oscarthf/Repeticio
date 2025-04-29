@@ -212,7 +212,6 @@ function render_results() {
     var result = GLOBALS.current_exercise_results;
     results_html += "<div class='result'>";
     results_html += "<p>" + result.message + "</p>";
-    results_html += "<p>Was correct: " + result.correct + "</p>";
     results_html += "</div>";
     
     results_html += "</div>";
