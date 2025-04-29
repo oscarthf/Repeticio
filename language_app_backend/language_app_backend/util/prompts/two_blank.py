@@ -9,7 +9,7 @@ This exercise will use the following TWO words: [TARGET WORDS].
 
 Instructions:
 - Write a sentence with TWO BLANKS ( ___ ... ___ ) where the correct word should go.
-- Make sure you use BOTH words provided above.
+- Make sure you use BOTH words provided above (you might have to be creative to include both in a good sentence).
 - Include a short instruction: "Choose the correct word to fill in the blanks:"
 - Provide 3 to 5 answer choices, (a, b, c, d, e).
 - Please ensure that ONE AND ONLY ONE answer is correct (this is the hardest part!).
