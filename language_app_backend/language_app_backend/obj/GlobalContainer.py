@@ -871,7 +871,13 @@ class GlobalContainer:
                 print(f"Exercise ID '{exercise_id}' not found in the database.")
                 continue
 
-            output_exercises.append(exercise)
+            light_exercise = {}
+            light_exercise["initial_strings"] = exercise.get("initial_strings")
+            light_exercise["middle_strings"] = exercise.get("middle_strings")
+            light_exercise["final_strings"] = exercise.get("final_strings")
+            light_exercise["criteria"] = exercise.get("criteria")
+
+            output_exercises.append(light_exercise)
 
         return output_exercises
             
