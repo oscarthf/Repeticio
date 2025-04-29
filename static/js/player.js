@@ -283,6 +283,11 @@ function submit_answer(index) {
                 GLOBALS.last_exercise_id = GLOBALS.current_exercise_id; // Save the last exercise ID
                 GLOBALS.current_exercise = null; // Reset current exercise
                 GLOBALS.current_exercise_id = null; // Reset current exercise ID after submission
+                // hide thumbs buttons
+                var thumbs_buttons = D.getElementById("thumbs_buttons");
+                if (thumbs_buttons) {
+                    thumbs_buttons.style.display = "none"; // Hide thumbs buttons
+                }
                 render_results();
             } else {
                 console.error("Error submitting answer: " + response.error);

@@ -562,7 +562,9 @@ class GlobalContainer:
         self.users_collection.update_one(
             {"_id": user_id},
             {"$set": {
-                "current_learning_language": learning_language
+                "current_learning_language": learning_language,
+                "last_created_exercise_id": "",
+                "last_created_exercise_time": 0
             }}
         )
         print(f"User {user_id} learning language set to '{learning_language}'.")
