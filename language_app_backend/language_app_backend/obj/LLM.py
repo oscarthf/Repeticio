@@ -8,14 +8,10 @@ from ..util.prompts.one_blank import start_prompt as ONE_BLANK_EXERCISE_START_PR
 from ..util.prompts.one_blank import inspiration_exercises as ONE_BLANK_EXERCISE_INSPIRATION_EXERCISES
 from ..util.prompts.two_blank import start_prompt as TWO_BLANK_EXERCISE_START_PROMPT
 from ..util.prompts.two_blank import inspiration_exercises as TWO_BLANK_EXERCISE_INSPIRATION_EXERCISES
-from ..util.prompts.vocabulary import (
-    INITIAL_WORD_PROMPT,
-)
-from ..util.constants import (
-    SUPPORTED_LANGUAGES,
-    OPENAI_MODEL_NAME,
-    MAX_WORD_LENGTH,
-)
+from ..util.prompts.vocabulary import INITIAL_WORD_PROMPT
+from ..util.constants import (SUPPORTED_LANGUAGES,
+                              OPENAI_MODEL_NAME,
+                              MAX_WORD_LENGTH)
 from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:

@@ -1674,7 +1674,7 @@ class GlobalContainer:
         
         print(f"Word ID '{word_id}' added to user {user_id}'s word list.")
 
-        return word_entry, True
+        return user_word_entry, True
 
     def get_next_word(self, user_id) -> Tuple[Optional[str], bool]:
         """
