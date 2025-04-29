@@ -199,8 +199,7 @@ def home(request):
 
     ######################
 
-    return render(request, 'home.html')
-
+    return render(request, 'home.html', {'show_ads': True})
 
 @ratelimit(key='ip', rate=DEFAULT_RATELIMIT)
 @login_required
