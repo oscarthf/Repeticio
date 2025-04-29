@@ -11,7 +11,7 @@ Instructions:
 - Output ONLY a JSON object following this format:
 
 {
-    "word_values": [list of key words],
+    "word_values": [list of key words (to verify you used the correct ones)],
     "initial_strings": [sentence with blank],
     "middle_strings": [instruction line],
     "final_strings": [list of answer choices],
