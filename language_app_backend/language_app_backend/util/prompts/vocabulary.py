@@ -41,14 +41,15 @@ EXAMPLE_WORD_KEYS_FOR_POPULATE = {
 }
 
 INITIAL_WORD_PROMPT = """
-Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] 
-organized by CEFR levels A1, A2, and B1. For each level, 
-include exactly 100 words that are common and useful at that level.
+Please generate a JSON object containing vocabulary words in [TARGET LANGUAGE] organized by CEFR levels A1, A2, and B1. 
+For each level, include exactly 100 words that are common and useful at that level.
 Each list should include a balanced mix of:
 Common verbs (e.g. "to be", "to eat")
 Everyday nouns (e.g. "house", "water", "friend")
 Frequently used adjectives and adverbs (e.g. "fast", "beautiful", "often")
 Basic pronouns, prepositions, and conjunctions
+Phrases or expressions that are commonly used in daily conversations
+
 Words should reflect everyday language suitable for learners up to CEFR level B1.
 
 Format the output like this:
@@ -56,13 +57,11 @@ Format the output like this:
 json
 Copy code
 {
-  "xx": {
     "A1": ["word1", "word2", "..."],
     "A2": ["word1", "word2", "..."],
     "B1": ["word1", "word2", "..."]
-  }
 }
-Replace "xx" with the language code (e.g., "es" for Spanish, "fr" for French).
+
 Do not include English translations. Only list the words as strings in arrays.
 
 Ensure that the JSON is valid and properly formatted.

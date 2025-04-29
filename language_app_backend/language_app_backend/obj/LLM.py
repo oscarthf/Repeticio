@@ -20,11 +20,7 @@ from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:
 
-    real_language_name = SUPPORTED_LANGUAGES[language]
-
-    language_str = f"{real_language_name} ({language})"
-
-    return language_str
+    return SUPPORTED_LANGUAGES[language]
 
 def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
 
@@ -34,8 +30,8 @@ def remove_duplicate_words(json_data: Dict[str, Any]) -> Dict[str, Any]:
     
     words_so_far = set()
 
-    for level in json_data:
-        for word in json_data[level]:
+    for level, word_list in json_data.items():
+        for word in word_list:
             if word in words_so_far:
                 json_data[level].remove(word)
             else:
@@ -350,12 +346,14 @@ class LLM:
 
         query_input = INITIAL_WORD_PROMPT.replace("[TARGET LANGUAGE]", language_str)
 
+        print(f"query_input: {query_input}")
+
         response = self.client.responses.create(
             model=OPENAI_MODEL_NAME,
             input=query_input
         )
 
-        print(response.output_text)
+        print(f"response.output_text: {response.output_text}")
 
         if not "{" in response.output_text or not "}" in response.output_text:
             print("Invalid response format")
@@ -365,6 +363,7 @@ class LLM:
         end_index = response.output_text.rfind("}")
 
         json_string = response.output_text[start_index:end_index + 1]
+
         try:
             json_data = json.loads(json_string)
         except json.JSONDecodeError as e:
@@ -372,41 +371,35 @@ class LLM:
             return None
         
         number_of_keys = len(json_data.keys())
-
-        if number_of_keys != 1:
+        
+        if number_of_keys != 3:
             print(f"Invalid number of keys in JSON: {number_of_keys}")
-            return None
-        
-        json_data = {language: json_data[list(json_data.keys())[0]]}
-        
-        if len(json_data[language]) != 3:
-            print(f"Invalid number of levels in JSON: {len(json_data[language])}")
             return None
         
         parsed_data = {}
         cefr_levels = ["a1", "a2", "b1"]
 
-        for level in json_data[language]:
+        for level, word_list in json_data.items():
 
             if not level.lower() in cefr_levels:
                 print(f"Invalid level in JSON: {level}")
                 return None
 
-            if len(json_data[language][level]) < 5:
-                print(f"Invalid number of words in level {level}: {len(json_data[language][level])}")
+            if len(word_list) < 5:
+                print(f"Invalid number of words in level {level}: {len(word_list)}")
                 return None
             
-            for word in json_data[language][level]:
+            for word in word_list:
                 if not isinstance(word, str):
                     print(f"Invalid word format in level {level}: {word}")
                     return None
                 
             cefr_level_index = cefr_levels.index(level.lower())
 
-            parsed_data[cefr_level_index] = json_data[language][level]
+            parsed_data[cefr_level_index] = word_list
             
         parsed_data = remove_duplicate_words(parsed_data)
 
-        return parsed_data
+        return {language: parsed_data}
 
         
