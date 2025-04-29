@@ -1,4 +1,4 @@
-# OpenLanguageApp
+# Repeticio Open Source AI Language App
 
 ### About
 #### This project is an experimental language web app which utilizes an LLM (currently from OpenAI) to create an entire course in any language. The prompts need some work, both to improve the quality of exercises and to create more targeted exercises to test grammer or special concepts.
