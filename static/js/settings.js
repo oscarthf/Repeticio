@@ -34,7 +34,7 @@ function render_user_object() {
     //     }
     // }
 
-    var html = `<p>User ID: ${user.user_id}</p>`;
+    var html = `<p>User ID: ${user_id}</p>`;
     html += `<p>XP: ${user.xp}</p>`;
     html += `<p>Current Language: ${user.current_learning_language}</p>`;
     html += `<p>Subscription Status: ${user.subscription_status ? "Active" : "Inactive"}</p>`;
@@ -43,7 +43,7 @@ function render_user_object() {
     html += `<p>Last Created Exercise Time: ${new Date(user.last_created_exercise_time * 1000).toLocaleString()}</p>`;
     html += `<p>Languages:</p><ul>`;
 
-    for (let lang in user.languages) {
+    for (let lang in user.learning_languages) {
         html += `<li>${lang} - Current Level: ${user.languages[lang].current_level}</li>`;
     }
 
