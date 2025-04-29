@@ -1,10 +1,10 @@
 
 // let home_url = "{% url 'home' %}";
-// let set_language_url = "{% url 'set_language' %}";
-// let set_user_language_url = "{% url 'set_user_language' %}";
+// let set_learning_language_url = "{% url 'set_learning_language' %}";
+// let set_ui_language_url = "{% url 'set_ui_language' %}";
 // let user_name = "{{ user.username }}";
 // let user_id = "{{ user.email }}";
-// let is_set_user_language = {{ is_set_user_language }};
+// let is_set_ui_language = {{ is_set_ui_language }};
 // let languages = [
 //     {% for language in languages %}
 //         ["{{ language.code }}", "{{ language.name }}"]
@@ -45,8 +45,8 @@ function select_language(index) {
 
     var language_code = languages[index][0];
     
-    if (is_set_user_language) {
-        var url = set_user_language_url + "?language=" + language_code;
+    if (is_set_ui_language) {
+        var url = set_ui_language_url + "?language=" + language_code;
     } else {
         var url = set_language_url + "?language=" + language_code;
     }

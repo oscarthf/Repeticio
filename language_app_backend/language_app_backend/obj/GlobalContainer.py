@@ -75,7 +75,9 @@ def next_word(word_keys,
 
     return word_keys[best_word_index_after_noise]
     
-def empty_user(user_id, language) -> Dict[Any, Any]:
+def empty_user(user_id, 
+               ui_language,
+               learning_language) -> Dict[Any, Any]:
     """
     Create an empty user document for the database.
     """
@@ -83,13 +85,14 @@ def empty_user(user_id, language) -> Dict[Any, Any]:
     user_entry = {
         "user_id": user_id, 
         "xp": 0,
-        "current_language": language,
+        "ui_language": ui_language,
+        "current_learning_language": learning_language,
         "subscription_status": False,
         "last_time_checked_subscription": 0,
         "last_created_exercise_id": "",
         "last_created_exercise_time": 0,
-        "languages": {
-            language: {
+        "learning_languages": {
+            learning_language: {
                 "current_level": 0,
             }
         }
@@ -462,7 +465,7 @@ class GlobalContainer:
 
         return words
     
-    def get_languages(self) -> list:
+    def get_supported_languages(self) -> list:
         """
         Get the list of supported languages.
         """
@@ -472,15 +475,15 @@ class GlobalContainer:
                 self.name = name
                 self.code = code
 
-        languages = [Language(key, value) for key, value in SUPPORTED_LANGUAGES.items()]
+        supported_languages = [Language(key, value) for key, value in SUPPORTED_LANGUAGES.items()]
 
-        return languages
+        return supported_languages
     
-    def get_user_language(self,
+    def get_ui_language(self,
                           user_id) -> Optional[str]:
         
         """
-        Get the user's UI languages from the database.
+        Get the user's ui_language from the database.
         """
         
         user = self.users_collection.find_one({"user_id": user_id})
@@ -489,20 +492,20 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return None
         
-        user_language = user.get("user_language", None)
+        ui_language = user.get("ui_language", None)
 
-        if user_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported user language '{user_language}' for user {user_id}.")
+        if ui_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported user language '{ui_language}' for user {user_id}.")
             return None
         
-        return user_language
+        return ui_language
 
 
-    def get_language(self,
-                     user_id) -> Optional[str]:
+    def get_learning_language(self,
+                              user_id) -> Optional[str]:
         
         """
-        Get the user's course languages from the database.
+        Get the user's learning_language from the database.
         """
 
         user = self.users_collection.find_one({"user_id": user_id})
@@ -511,25 +514,40 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return None
         
-        current_language = user.get("current_language", None)
+        current_learning_language = user.get("current_learning_language", None)
 
-        if current_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{current_language}' for user {user_id}.")
+        if current_learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return None
         
-        return current_language
+        return current_learning_language
     
     def create_user_if_needed(self, 
-                              user_id,
-                              language) -> bool:
+                              user_id) -> bool:
         """
         Create a user in the database
         """
+            
+        ui_language = self.get_ui_language(user_id)
 
-        if not language in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{language}' for user {user_id}.")
-            return False
+        if not ui_language in SUPPORTED_LANGUAGES:
+            print(f"Unsupported user language '{ui_language}' for user {user_id}.")
+            ui_language = None
+
+        if ui_language is None:
+            return False, 'select_ui_language'
+            
+        ######################
+
+        learning_language = self.get_learning_language(user_id)
+
+        if not learning_language in SUPPORTED_LANGUAGES:
+            print(f"Unsupported learning language '{learning_language}' for user {user_id}.")
+            learning_language = None
         
+        if learning_language is None:
+            return False, 'select_learning_language'
+
         user = self.users_collection.find_one({"user_id": user_id})
 
         if user:
@@ -537,7 +555,8 @@ class GlobalContainer:
             return True
 
         new_user = empty_user(user_id, 
-                              language)
+                              ui_language,
+                              learning_language)
 
         self.users_collection.insert_one(new_user)
         
@@ -827,18 +846,18 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return -1
         
-        current_language = user.get("current_language", None)
-        if current_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{current_language}' for user {user_id}.")
+        current_learning_language = user.get("current_learning_language", None)
+        if current_learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return -1
 
-        language_data = user.get("languages", {}).get(current_language, None)
+        language_data = user.get("learning_languages", {}).get(current_learning_language, None)
         if language_data is None:
-            print(f"No language data found for user {user_id} in language '{current_language}'.")
+            print(f"No language data found for user {user_id} in language '{current_learning_language}'.")
             return -1
         
         words = self.get_user_words(user_id, 
-                                    current_language,
+                                    current_learning_language,
                                     False)
 
         if words is None:
@@ -846,7 +865,7 @@ class GlobalContainer:
             words = []
 
         locked_words = self.get_user_words(user_id, 
-                                           current_language,
+                                           current_learning_language,
                                            True)
 
         if locked_words is None:
@@ -860,15 +879,15 @@ class GlobalContainer:
             current_level = language_data.get("current_level", 0)
             supported_levels = [0, 1, 2]
             if current_level >= len(supported_levels) - 1:
-                print(f"User {user_id} is at the max level for language '{current_language}'.")
+                print(f"User {user_id} is at the max level for language '{current_learning_language}'.")
                 return 4
             
             # add next set of words to locked words
-            this_level_words = self.get_words_for_level(current_language, 
+            this_level_words = self.get_words_for_level(current_learning_language, 
                                                         current_level)
 
             if not this_level_words or not len(this_level_words):
-                print(f"No words found for level {current_level} in language '{current_language}'.")
+                print(f"No words found for level {current_level} in language '{current_learning_language}'.")
                 return -1
 
             this_level_word_keys = [word["_id"] for word in this_level_words]
@@ -883,7 +902,7 @@ class GlobalContainer:
                 self.users_collection.update_one(
                     {"user_id": user_id},
                     {"$set": {
-                        "languages." + current_language + ".current_level": current_level
+                        "learning_languages." + current_learning_language + ".current_level": current_level
                     }}
                 )
                 print(f"User {user_id} is now at level {current_level}.")
@@ -894,7 +913,7 @@ class GlobalContainer:
             (random_word, 
              success) = self.add_word_to_locked_words(user_id,
                                                         random_word_key,
-                                                        current_language)
+                                                        current_learning_language)
             if not success:
                 print(f"Failed to add word '{random_word_key}' to locked words for user {user_id}.")
                 return -1
@@ -963,9 +982,9 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return False
         
-        current_language = user.get("current_language", None)
-        if current_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{current_language}' for user {user_id}.")
+        current_learning_language = user.get("current_learning_language", None)
+        if current_learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return False
 
         selected_word = self.user_words_collection.find_one({"_id": word_key,
@@ -999,7 +1018,7 @@ class GlobalContainer:
     
     def get_exercise_id(self,
                         word_keys,
-                        current_language,
+                        current_learning_language,
                         current_level) -> str:
         """
         Get an exercise id for the user from the database.
@@ -1010,7 +1029,7 @@ class GlobalContainer:
 
         number_of_words_needed = len(word_keys)
 
-        exercise_key = f"{number_of_words_needed}__{current_language}__{current_level}__{sorted_word_keys_combined}"
+        exercise_key = f"{number_of_words_needed}__{current_learning_language}__{current_level}__{sorted_word_keys_combined}"
 
         exercise_id_list_doc = self.exercises_id_lists_collection.find_one({"_id": exercise_key})
 
@@ -1029,7 +1048,7 @@ class GlobalContainer:
             
             exercise_id_list = self.add_to_exercise_id_list(exercise_key,
                                                             word_keys,
-                                                            current_language,
+                                                            current_learning_language,
                                                             current_level)
 
         else:
@@ -1048,7 +1067,7 @@ class GlobalContainer:
     def add_to_exercise_id_list(self,
                                 exercise_key,
                                 word_keys,
-                                current_language,
+                                current_learning_language,
                                 current_level) -> None:
         
         """
@@ -1072,7 +1091,7 @@ class GlobalContainer:
             num_tries += 1
             try:
                 exercise = self.llm.create_exercise(word_values,
-                                                    current_language,
+                                                    current_learning_language,
                                                     current_level,
                                                     inspiration_exercises)
                 break
@@ -1404,12 +1423,12 @@ class GlobalContainer:
         Create a new exercise for the user.
         """
 
-        current_language = user.get("current_language", None)
-        if current_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{current_language}' for user {user_id}.")
+        current_learning_language = user.get("current_learning_language", None)
+        if current_learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return False
         
-        current_level = user.get("languages", {}).get(current_language, {}).get("current_level", None)
+        current_level = user.get("learning_languages", {}).get(current_learning_language, {}).get("current_level", None)
         if current_level is None:
             print(f"No current level found for user {user_id}.")
             return False
@@ -1432,7 +1451,7 @@ class GlobalContainer:
             word_keys.append(word_key)
             
         exercise_id = self.get_exercise_id(word_keys, 
-                                            current_language,
+                                            current_learning_language,
                                             current_level)
         
         if not exercise_id:
@@ -1563,7 +1582,7 @@ class GlobalContainer:
     def add_word_to_locked_words(self, 
                                  user_id, 
                                  word_key,
-                                 current_language) -> bool:
+                                 current_learning_language) -> bool:
         """
         Add a word to the user's word list in the database.
         """
@@ -1576,7 +1595,7 @@ class GlobalContainer:
 
         word_entry = empty_word_entry(word_key,
                                       user_id,
-                                      current_language)
+                                      current_learning_language)
 
         self.user_words_collection.update_one(
             {"_id": word_key,
@@ -1600,9 +1619,9 @@ class GlobalContainer:
             print(f"User {user_id} not found in the database.")
             return None, False
         
-        current_language = user.get("current_language", None)
-        if current_language not in SUPPORTED_LANGUAGES:
-            print(f"Unsupported language '{current_language}' for user {user_id}.")
+        current_learning_language = user.get("current_learning_language", None)
+        if current_learning_language not in SUPPORTED_LANGUAGES:
+            print(f"Unsupported language '{current_learning_language}' for user {user_id}.")
             return None, False
         
         unlock_word_response = self.check_if_should_unlock_new_word(user_id)
@@ -1610,7 +1629,7 @@ class GlobalContainer:
         print(f"Unlock word response: {unlock_word_response}.")
         
         words = self.get_user_words(user_id,
-                                    current_language,
+                                    current_learning_language,
                                     False)
         
         if words is None:
