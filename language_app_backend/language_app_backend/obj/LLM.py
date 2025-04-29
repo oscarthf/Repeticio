@@ -1,6 +1,7 @@
 
 from typing import Dict, Any, Optional, List
 import json
+from unidecode import unidecode
 
 import numpy as np
 
@@ -128,8 +129,10 @@ def validate_exercise(exercise: Dict[str, Any],
         print(f"Invalid criteria in output: {output_criteria}")
         return False
     
+    output_criteria = unidecode(output_criteria).strip().lower()
+    
     if not output_criteria in possible_criteria:
-        print(f"Invalid criteria in output: {output_criteria}")
+        print(f"Invalid criteria in output: {output_criteria} not in {possible_criteria}")
         return False
     
     return True
