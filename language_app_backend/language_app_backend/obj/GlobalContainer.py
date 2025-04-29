@@ -528,9 +528,11 @@ class GlobalContainer:
         Create a user in the database
         """
             
+        ######################
+
         ui_language = self.get_ui_language(user_id)
 
-        if not ui_language in SUPPORTED_LANGUAGES:
+        if ui_language is not None and not ui_language in SUPPORTED_LANGUAGES:
             print(f"Unsupported user language '{ui_language}' for user {user_id}.")
             ui_language = None
 
@@ -541,12 +543,14 @@ class GlobalContainer:
 
         learning_language = self.get_learning_language(user_id)
 
-        if not learning_language in SUPPORTED_LANGUAGES:
+        if learning_language is not None and not learning_language in SUPPORTED_LANGUAGES:
             print(f"Unsupported learning language '{learning_language}' for user {user_id}.")
             learning_language = None
         
         if learning_language is None:
             return False, 'select_learning_language'
+
+        ######################
 
         user = self.users_collection.find_one({"_id": user_id})
 
