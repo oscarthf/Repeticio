@@ -12,7 +12,8 @@ from ..util.prompts.two_blank import inspiration_exercises as TWO_BLANK_EXERCISE
 from ..util.prompts.vocabulary import INITIAL_WORD_PROMPT
 from ..util.constants import (SUPPORTED_LANGUAGES,
                               OPENAI_MODEL_NAME,
-                              MAX_WORD_LENGTH)
+                              MAX_WORD_LENGTH,
+                              POSSIBLE_CRITERIA)
 from ..util.inference import get_inference_client
 
 def get_language_string(language: str) -> str:
@@ -54,7 +55,7 @@ def validate_exercise(exercise: Dict[str, Any],
     #         "c) estrecho",
     #         "d) corto"
     #     ],
-    #     "criteria": "a"
+    #     "criteria": ["a"]
     # }
 
     number_of_keys = len(exercise.keys())
@@ -124,7 +125,6 @@ def validate_exercise(exercise: Dict[str, Any],
         if len(final_string) < 1 or len(final_string) > 100:
             print(f"Invalid final string length in output: {len(final_string)}")
             return False
-        
 
     if isinstance(output_criteria, list) and len(output_criteria) >= 1:
         output_criteria = output_criteria[0]
@@ -159,6 +159,7 @@ class LLM:
 
     __slots__ = [
         "client",
+        "possible_criteria",
     ]
     def __init__(self) -> None:
         """
@@ -166,13 +167,13 @@ class LLM:
         """
 
         self.client = get_inference_client()
+        self.possible_criteria = POSSIBLE_CRITERIA
 
     def create_exercise(self,
                         word_values,
                         language,
                         level,
-                        inspiration_exercises,
-                        possible_criteria:List[str] = ['a', 'b', 'c', 'd', 'e']) -> Dict[Any, Any]:
+                        inspiration_exercises) -> Dict[Any, Any]:
         """
         Create an exercise for the user from the database.
         """
@@ -237,7 +238,7 @@ class LLM:
         
         is_valid = validate_exercise(json_data, 
                                      word_values,
-                                     possible_criteria=possible_criteria)
+                                     possible_criteria=self.possible_criteria)
 
         if not is_valid:
             print("Invalid exercise format")
@@ -247,8 +248,11 @@ class LLM:
         exercise["middle_strings"] = json_data["middle_strings"]
         exercise["final_strings"] = json_data["final_strings"]
         
-        criteria = json_data["criteria"].lower()
-        criteria = possible_criteria.index(criteria)
+        criteria = json_data["criteria"]
+        if isinstance(criteria, list) and len(criteria) >= 1:
+            criteria = criteria[0]
+        criteria = criteria.lower()
+        criteria = self.possible_criteria.index(criteria)
         exercise["criteria"] = criteria
         
         return exercise
