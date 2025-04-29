@@ -72,7 +72,14 @@ function render_user_words() {
     var html = "<ul>";
 
     for (let word of user_words) {
-        html += `<li>${word.word_value} - Last visited: ${word.last_visited_times.join(", ")}</li>`;
+        html += "<li class='word_item' onclick='this.querySelector(\".word_details\").style.display = this.querySelector(\".word_details\").style.display === \"none\" ? \"block\" : \"none\";'>";
+        html += "<span class='word_value'>" + word._id + "</span>";
+        html += "<ul class='word_details' style='display: none;'>";
+            html += "<li>Last Visited Times: " + (word.last_visited_times.length > 0 ? word.last_visited_times.join(", ") : "None") + "</li>";
+            html += "<li>Last Scores: " + (word.last_scores.length > 0 ? word.last_scores.join(", ") : "None") + "</li>";
+            html += "<li>Is Locked: " + (word.is_locked ? "Yes" : "No") + "</li>";
+        html += "</ul>";
+        html += "</li>";
     }
 
     html += "</ul>";
