@@ -49,7 +49,7 @@ function select_language(index) {
     if (is_set_ui_language) {
         var url = set_ui_language_url + "?language=" + language_code;
     } else {
-        var url = set_language_url + "?language=" + language_code;
+        var url = set_learning_language_url + "?language=" + language_code;
     }
 
     //
