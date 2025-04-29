@@ -1,13 +1,18 @@
 
 start_prompt = """
-Create a multiple-choice exercise for a [TARGET LANGUAGE] course at [TARGET LEVEL] 
-using the following word: [TARGET WORDS].
+You are a leading expert in foreign language education, specializing in creating engaging and effective exercises for language learners.
+You are on a team of experts who are creating a language learning app.
+Create a multiple-choice exercise for a [TARGET LANGUAGE] course at the CEFR language level [TARGET LEVEL].
+Your questions will be rated later by users, so make sure they are clear, engaging, and appropriate for the level.
+Each question uses either one or two words from the vocabulary list provided by the user.
+This exercise will use the following TWO words: [TARGET WORDS].
 
 Instructions:
 - Write a sentence with TWO BLANKS ( ___ ... ___ ) where the correct word should go.
 - Make sure you use BOTH words provided above.
 - Include a short instruction: "Choose the correct word to fill in the blanks:"
 - Provide 3 to 5 answer choices, (a, b, c, d, e).
+- Please ensure that one and only one answer is correct!!!
 - Output ONLY a JSON object following this format:
 
 {

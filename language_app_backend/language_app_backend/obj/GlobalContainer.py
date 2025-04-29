@@ -1166,6 +1166,8 @@ class GlobalContainer:
                                                     inspiration_exercises)
                 if exercise is not None:
                     break
+                else:
+                    print(f"Failed to create exercise for key '{exercise_key}' on attempt {num_tries}. Retrying...")
             except Exception as e:
                 print(f"Error creating exercise for key '{exercise_key}': {e}. Retrying... (Probably OpenAI API rate limit exceeded)")
                 time.sleep(10)
@@ -1479,6 +1481,7 @@ class GlobalContainer:
                 if not thread.is_alive():
                     self.create_exercise_threads.remove(thread)
 
+        print(f"creating new exercise for {user_id}")
         create_exercise_thread = threading.Thread(target=self.create_new_exercise_inner,
                                                     args=(user_id, user),
                                                     daemon=True)
@@ -1508,6 +1511,8 @@ class GlobalContainer:
         number_of_words_needed = 2
         if np.random.rand() < 0.5:
             number_of_words_needed = 1
+
+        print(f"searching for {number_of_words_needed} words for a new exercise for {user_id}")
 
         word_ids = []
 
