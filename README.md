@@ -17,6 +17,7 @@ OpenAI large language model API
 ## To do:
 
 ```
+* Create translations for instructions in UI language
 * Test subscription logic
 * Test main server election logic
 * Improve prompting
