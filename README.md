@@ -70,7 +70,7 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 5. Add your domain name as an authorized origin.
 6. Add the following Authorized redirect URIs:
     - http://localhost:8000/social-auth/complete/google-oauth2/
-    - <your domain name>/social-auth/complete/google-oauth2/
+    - <your domain name (with http:// scheme)>/social-auth/complete/google-oauth2/
 7. Click "Create" and copy the Client ID and Client Secret into your .env file:
     GOOGLE_AUTH_CLIENT_KEY=<Client ID>
     GOOGLE_AUTH_CLIENT_SECRET=<Client Secret>
@@ -164,5 +164,5 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
     Select "We manage your domain"
     Copy name servers into wherever you got the domain name
     Wait for update, could take a while but probably not hours (they say could take 72 hours)
-6 (optional). Purchase a static IP and restrict MongoDB access to this IP.
+6 (recomended). Purchase a static IP and restrict MongoDB access to this IP.
 ```
