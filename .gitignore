@@ -5,3 +5,5 @@ staticfiles
 *.env
 db.sqlite3*
 *.pyc
+config.bat
+node_modules
