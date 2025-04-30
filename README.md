@@ -59,7 +59,7 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 2. Navigate to API Keys, create one and copy it into your .env file.
 ```
 
-## To create Google Login API Credentials:
+## To create Google Login API Credentials (REQUIRED):
 
 ```
 0. Go to https://console.cloud.google.com/
@@ -69,8 +69,8 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 4. Select Web Application
 5. Add your domain name as an authorized origin.
 6. Add the following Authorized redirect URIs:
-    - http://localhost:8000/accounts/google/login/callback/
-    - <your domain name>/accounts/google/login/callback/
+    - http://localhost:8000/social-auth/complete/google-oauth2/
+    - <your domain name>/social-auth/complete/google-oauth2/
 7. Click "Create" and copy the Client ID and Client Secret into your .env file:
     GOOGLE_AUTH_CLIENT_KEY=<Client ID>
     GOOGLE_AUTH_CLIENT_SECRET=<Client Secret>
