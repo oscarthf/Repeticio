@@ -31,7 +31,7 @@ OpenAI large language model API
 ## Environment variables needed:
 
 ```
-LANGUAGE_APP_DB_CONNECTION_STRING=<LANGUAGE_APP_DB_CONNECTION_STRING from MongoDB deployment>
+REPETICIO_DB_CONNECTION_STRING=<REPETICIO_DB_CONNECTION_STRING from MongoDB deployment>
 GOOGLE_AUTH_CLIENT_KEY=<GOOGLE_AUTH_CLIENT_KEY>
 GOOGLE_AUTH_CLIENT_SECRET=<GOOGLE_AUTH_CLIENT_SECRET>
 GOOGLE_AUTH_REDIRECT_URI=<"http://localhost:8000/accounts/google/login/callback/" or using your domain name or IP>
@@ -41,7 +41,7 @@ STRIPE_SECRET_KEY=<STRIPE_SECRET_KEY>
 STRIPE_WEBHOOK_SECRET=<STRIPE_WEBHOOK_SECRET>
 STRIPE_PRICE_ID=<STRIPE_PRICE_ID, not product id>
 FRONTEND_URL=<STRIPE WEBHOOK FRONTEND_URL>
-OPEN_LANGUAGE_APP_DEBUG=<"True" if local, "False" if deployment>
+REPETICIO_DEBUG=<"True" if local, "False" if deployment>
 GOOGLE_ADSENSE_CLIENT_ID=<GOOGLE_ADSENSE_CLIENT_ID>
 DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
 ALLOWED_HOSTS=<leave blank if local, your_domain_name.xyz,www.your_domain_name.xyz  (comma separated) if deployment>
@@ -136,9 +136,9 @@ ALLOWED_HOSTS=<leave blank if local, your_domain_name.xyz,www.your_domain_name.x
     cd <path/to/OpenLanguageApp>
 1. Follow the steps above to set up your .env file
 2. Build the container using the command:
-    docker build -t language_app:latest .
+    docker build -t repeticio:latest .
 3. Run the container using the following command:
-    docker run -p 8000:8000 language_app:latest
+    docker run -p 8000:8000 repeticio:latest
 ```
 
 ## For Local Deployment (No Docker):

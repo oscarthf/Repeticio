@@ -12,4 +12,4 @@ setuptools==67.6.1
 gunicorn==20.0.4
 whitenoise==6.9.0
 django-csp==4.0
--e ./language_app_backend
+-e ./RepeticioBackend
