@@ -29,5 +29,3 @@ max_requests_jitter = 50  # Add randomness to avoid all workers restarting at on
 
 # Worker Class (use 'gthread' if you expect many concurrent requests but low CPU)
 worker_class = 'sync'  # Alternatives: 'gthread', 'gevent' if using async views
-
-# Use a non-root user if possible (handled in Dockerfile)

@@ -19,12 +19,13 @@ OpenAI large language model API
 ## To do:
 
 ```
-* Add AWS deployment instructions.
-* Create translations for instructions in UI language.
-* Test subscription logic.
-* Test main server election logic.
-* Improve prompting to reduce bad question generation.
-* Allow LLM to check if answer to exercise is not correct (or multiple answers are correct).
+* Create Flask API for MongoDB access. (HIGH PRIORITY, EASY)
+* Add AWS deployment instructions. (LOW PRIORITY, MEDIUM)
+* Create translations for instructions in UI language. (HIGH PRIORITY, HARD)
+* Test subscription logic. (MEDIUM PRIORITY, HARD)
+* Test main server election logic. (MEDIUM PRIORITY, HARD)
+* Improve prompting to reduce bad question generation. (HIGH PRIORITY, MEDIUM)
+* Allow LLM to check if answer to exercise is not correct (or multiple answers are correct). (LOW PRIORITY, MEDIUM)
 ```
 
 ## Environment variables needed:
@@ -43,7 +44,7 @@ FRONTEND_URL=<STRIPE WEBHOOK FRONTEND_URL>
 OPEN_LANGUAGE_APP_DEBUG=<"True" if local, "False" if deployment>
 GOOGLE_ADSENSE_CLIENT_ID=<GOOGLE_ADSENSE_CLIENT_ID>
 DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
-ALLOWED_HOSTS=<leave blank if local, your_domain_name.xyz if deployment>
+ALLOWED_HOSTS=<leave blank if local, your_domain_name.xyz,www.your_domain_name.xyz  (comma separated) if deployment>
 
 ```
 

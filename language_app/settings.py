@@ -20,16 +20,17 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'REPLACE_THIS_WITH_A_LONG_RANDOM_SECRET_IN_DEV')
 
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 3600  # 1 hour in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'False') == 'True'
@@ -37,17 +38,12 @@ DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'False') == 'True'
 if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 else:
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_AGE = 3600  # 1 hour in seconds
-    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     
-    ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'your_domain_name.xyz'),
-                     "www." + os.environ.get('ALLOWED_HOSTS', 'your_domain_name.xyz')]
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'your_domain_name.xyz').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -76,7 +72,6 @@ MIDDLEWARE = [
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = ("'self'", "https://apis.google.com", "https://js.stripe.com")
 
-# Add this section 
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend',
@@ -118,13 +113,12 @@ WSGI_APPLICATION = 'language_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
