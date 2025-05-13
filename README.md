@@ -19,11 +19,12 @@ OpenAI large language model API
 ## To do:
 
 ```
-* Create translations for instructions in UI language
-* Test subscription logic
-* Test main server election logic
-* Improve prompting
-* Allow LLM to check if answer to exercise is not correct (or multiple answers are correct)
+* Add AWS deployment instructions.
+* Create translations for instructions in UI language.
+* Test subscription logic.
+* Test main server election logic.
+* Improve prompting to reduce bad question generation.
+* Allow LLM to check if answer to exercise is not correct (or multiple answers are correct).
 ```
 
 ## Environment variables needed:
@@ -42,6 +43,7 @@ FRONTEND_URL=<STRIPE WEBHOOK FRONTEND_URL>
 OPEN_LANGUAGE_APP_DEBUG=<"True" if local, "False" if deployment>
 GOOGLE_ADSENSE_CLIENT_ID=<GOOGLE_ADSENSE_CLIENT_ID>
 DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
+ALLOWED_HOSTS=<leave blank if local, your_domain_name.xyz if deployment>
 
 ```
 
@@ -166,5 +168,5 @@ DJANGO_SECRET_KEY=<DJANGO_SECRET_KEY>
     Select "We manage your domain"
     Copy name servers into wherever you got the domain name
     Wait for update, could take a while but probably not hours (they say could take 72 hours)
-6 (recomended). Purchase a static IP and restrict MongoDB access to this IP.
+6 (Recomended). Purchase a static IP and restrict MongoDB access to this IP.
 ```

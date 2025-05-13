@@ -1,19 +1,25 @@
-# dockerfile for the language app
-FROM python:3.10
+FROM python:3.10-slim
 
-# Set the working directory
-WORKDIR /
+RUN adduser --disabled-password --gecos '' appuser
 
-# Copy everything to the working directory
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-setuptools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
+
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
-RUN apt-get update && apt-get install -y --no-install-recommends python3-setuptools
+RUN chown -R appuser:appuser /app
+USER appuser
 
-# Update pip to the latest version
-RUN python -m pip install --upgrade pip
-
-# Install the dependencies (including language_app_backend using "-e ./language_app_backend")
-RUN python -m pip install --no-cache-dir -r requirements.txt
+EXPOSE 8000
 
 # Run using startup.bash (in Digital Ocean App Platform, this will be skipped and the command in the Procfile will be used)
 CMD ["bash", "startup.bash"]

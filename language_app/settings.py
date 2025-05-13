@@ -24,14 +24,30 @@ LOGOUT_REDIRECT_URL = '/'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'REPLACE_THIS_WITH_A_LONG_RANDOM_SECRET_IN_DEV')
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('OPEN_LANGUAGE_APP_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'openlanguageapp.xyz', 'www.openlanguageapp.xyz']
-
-# Application definition
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+else:
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_AGE = 3600  # 1 hour in seconds
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'your_domain_name.xyz'),
+                     "www." + os.environ.get('ALLOWED_HOSTS', 'your_domain_name.xyz')]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -54,7 +70,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'csp.middleware.CSPMiddleware'
 ]
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "https://apis.google.com", "https://js.stripe.com")
 
 # Add this section 
 AUTHENTICATION_BACKENDS = [
