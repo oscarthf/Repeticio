@@ -10,15 +10,18 @@ from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
 
-from language_app_backend.util.constants import (DO_NOT_CHECK_SUBSCRIPTION,
-                                                    DEFAULT_RATELIMIT,
-                                                    OPEN_LANGUAGE_APP_ALLOWED_USER_IDS,
-                                                    GET_CREATED_EXERCISES_RATELIMIT)
-from language_app_backend.obj.APIClient import RepeticioAPIClient
+from player_app.APIClient import RepeticioAPIClient
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 repeticio_api = RepeticioAPIClient(settings.REPETICIO_API_BASE_URL)
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["your_whitelisted_email@gmail.com"]
+OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
+GET_CREATED_EXERCISES_RATELIMIT = '40/m'  # Rate limit for get_created_exercises view
+DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
+
+DO_NOT_CHECK_SUBSCRIPTION = repeticio_api.get_do_not_check_subscription()
 
 ##########################################################################
 ### DOES NOT NEED SUBSCRIPTION ###########################################

@@ -16,12 +16,7 @@ OPENAI_MODEL_NAME = "gpt-4o"
 
 DO_NOT_CHECK_SUBSCRIPTION = True# This is for testing purposes only. In production, set this to False.
 
-# OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = ["oscarthf@gmail.com"]
-OPEN_LANGUAGE_APP_ALLOWED_USER_IDS = []
-
 CHECK_SUBSCRIPTION_INTERVAL = 10 * 60  # 10 minutes
-DEFAULT_RATELIMIT = '100/h'  # Default rate limit for all views
-GET_CREATED_EXERCISES_RATELIMIT = '40/m'  # Rate limit for get_created_exercises view
 
 NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE = 3
 

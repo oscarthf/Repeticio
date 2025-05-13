@@ -14,6 +14,13 @@ class RepeticioAPIServer:
 
     def run(self):
 
+        @self.app.route("/get_do_not_check_subscription", methods=["GET"])
+        def get_do_not_check_subscription():
+            do_not_check_subscription = self.gc.get_do_not_check_subscription()
+            if do_not_check_subscription is not None:
+                return jsonify({"value": do_not_check_subscription})
+            else:
+                return jsonify({"error": "failed to get do_not_check_subscription"}), 500
 
         @self.app.route("/set_user_subscription", methods=["POST"])
         def set_user_subscription():
@@ -194,5 +201,5 @@ class RepeticioAPIServer:
 
 if __name__ == "__main__":
 
-    api = FlaskAPI()
+    api = RepeticioAPIServer()
     api.run()

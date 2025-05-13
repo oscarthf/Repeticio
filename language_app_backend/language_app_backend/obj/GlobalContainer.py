@@ -223,6 +223,13 @@ class GlobalContainer:
 
         self.start_background_threads()
 
+    def get_do_not_check_subscription(self) -> bool:
+
+        """
+        Get the value of DO_NOT_CHECK_SUBSCRIPTION.
+        """
+        return DO_NOT_CHECK_SUBSCRIPTION
+
     def check_subscription_active(user_id) -> bool:
 
         customers = stripe.Customer.list(email=user_id).data
