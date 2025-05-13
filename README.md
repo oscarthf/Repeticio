@@ -8,18 +8,19 @@
 ## Stack:
 
 ```
-Heroku style django/gunicorn/whitenoise server hosted using Digital Ocean App Platform
+Heroku style django/gunicorn/whitenoise frontend
+Heroku style flask/gunicorn/waitress backend
 MongoDB Atlas as database
 Google login
 Stripe payments
 Google Ads
 OpenAI large language model API
+Hosting options including Digital Ocean App Platform
 ```
 
 ## To do:
 
 ```
-* Create Flask API for MongoDB access. (HIGH PRIORITY, EASY)
 * Add AWS deployment instructions. (LOW PRIORITY, MEDIUM)
 * Create translations for instructions in UI language. (HIGH PRIORITY, HARD)
 * Test subscription logic. (MEDIUM PRIORITY, HARD)
