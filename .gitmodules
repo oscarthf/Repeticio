@@ -1,0 +1,6 @@
+[submodule "RepeticioFrontend"]
+	path = RepeticioFrontend
+	url = https://github.com/oscarthf/RepeticioFrontend
+[submodule "RepeticioBackend"]
+	path = RepeticioBackend
+	url = https://github.com/oscarthf/RepeticioBackend
