@@ -1,4 +1,4 @@
-
+import os
 from typing import Optional, Tuple, Dict, Any, List
 import threading
 import time
@@ -10,7 +10,11 @@ import numpy as np
 
 from pymongo import ASCENDING as PY_MONGO_ASCENDING
 
-from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
+import stripe
+
+from ..util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
+                              DO_NOT_CHECK_SUBSCRIPTION,
+                              NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               SUPPORTED_LANGUAGES,
                               NEXT_WORD_TEMPERATURE, 
                               MAX_HISTORY_LENGTH,
@@ -25,6 +29,8 @@ from ..util.constants import (NUMBER_OF_ATTEMPTS_TO_CREATE_EXERCISE,
                               BACKGROUND_THREAD_SLEEP_TIME,
                               TIMEOUT_TO_CREATE_NEW_EXERCISE,
                               POSSIBLE_CRITERIA)
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'ADD_YOUR_STRIPE_SECRET_KEY_HERE')
 
 def next_word(word_ids, 
               word_scores, 
@@ -216,6 +222,45 @@ class GlobalContainer:
         self.register_server()
 
         self.start_background_threads()
+
+    def check_subscription_active(user_id) -> bool:
+
+        customers = stripe.Customer.list(email=user_id).data
+        if not customers:
+            return False # No customer found
+        
+        customer = customers[0]
+
+        customer_id = customer.id
+
+        subscriptions = stripe.Subscription.list(customer=customer_id, status='all')
+
+        for sub in subscriptions.auto_paging_iter():
+            if sub.status in ['active', 'trialing']:
+                return True  # They have an active subscription
+        return False  # No active subscription
+
+    def check_subscription_pipeline(self, user_id) -> bool:
+
+        if DO_NOT_CHECK_SUBSCRIPTION:
+            return True
+
+        current_time = datetime.datetime.now(datetime.timezone.utc)
+        
+        check_subscription_interval = datetime.timedelta(seconds=CHECK_SUBSCRIPTION_INTERVAL)
+
+        last_time_checked_subscription = self.get_last_time_checked_subscription(user_id)
+        if last_time_checked_subscription is None:
+            last_time_checked_subscription = current_time - 2 * check_subscription_interval
+        
+        if (current_time - last_time_checked_subscription) > check_subscription_interval:
+            subscription_active = check_subscription_active(user_id)
+            self.set_user_subscription(user_id, subscription_active)
+            self.set_last_time_checked_subscription(user_id, current_time)
+        else:
+            subscription_active = self.get_user_subscription(user_id)
+
+        return subscription_active
 
     def __del__(self) -> None:
         """

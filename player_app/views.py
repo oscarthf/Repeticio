@@ -1,5 +1,4 @@
 
-import datetime
 import json
 
 import stripe
@@ -11,53 +10,15 @@ from django.contrib.auth.decorators import login_required
 
 from django_ratelimit.decorators import ratelimit
 
-from language_app_backend.util.db import get_global_container
-from language_app_backend.util.constants import (CHECK_SUBSCRIPTION_INTERVAL, 
-                                                    DO_NOT_CHECK_SUBSCRIPTION,
+from language_app_backend.util.constants import (DO_NOT_CHECK_SUBSCRIPTION,
                                                     DEFAULT_RATELIMIT,
                                                     OPEN_LANGUAGE_APP_ALLOWED_USER_IDS,
                                                     GET_CREATED_EXERCISES_RATELIMIT)
+from language_app_backend.obj.APIClient import RepeticioAPIClient
+
+repeticio_api = RepeticioAPIClient(settings.REPETICIO_API_BASE_URL)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
-def check_subscription_active(user_id) -> bool:
-
-    customers = stripe.Customer.list(email=user_id).data
-    if not customers:
-        return False # No customer found
-    
-    customer = customers[0]
-
-    customer_id = customer.id
-
-    subscriptions = stripe.Subscription.list(customer=customer_id, status='all')
-
-    for sub in subscriptions.auto_paging_iter():
-        if sub.status in ['active', 'trialing']:
-            return True  # They have an active subscription
-    return False  # No active subscription
-
-def check_subscription_pipeline(global_container, user_id) -> bool:
-
-    if DO_NOT_CHECK_SUBSCRIPTION:
-        return True
-
-    current_time = datetime.datetime.now(datetime.timezone.utc)
-    
-    check_subscription_interval = datetime.timedelta(seconds=CHECK_SUBSCRIPTION_INTERVAL)
-
-    last_time_checked_subscription = global_container.get_last_time_checked_subscription(user_id)
-    if last_time_checked_subscription is None:
-        last_time_checked_subscription = current_time - 2 * check_subscription_interval
-    
-    if (current_time - last_time_checked_subscription) > check_subscription_interval:
-        subscription_active = check_subscription_active(user_id)
-        global_container.set_user_subscription(user_id, subscription_active)
-        global_container.set_last_time_checked_subscription(user_id, current_time)
-    else:
-        subscription_active = global_container.get_user_subscription(user_id)
-
-    return subscription_active
 
 ##########################################################################
 ### DOES NOT NEED SUBSCRIPTION ###########################################
@@ -108,13 +69,11 @@ def stripe_webhook(request):
     except (ValueError, stripe.error.SignatureVerificationError):
         return HttpResponse(status=400)
 
-    global_container = get_global_container()
-
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session.get('customer_email')
 
-        global_container.set_user_subscription(customer_email, True)
+        repeticio_api.set_user_subscription(customer_email, True)
 
     elif event['type'] == 'customer.subscription.deleted':
         subscription = event['data']['object']
@@ -125,7 +84,7 @@ def stripe_webhook(request):
         customer_email = customer.email
 
         if customer_email:
-            global_container.set_user_subscription(customer_email, False)
+            repeticio_api.set_user_subscription(customer_email, False)
 
     return HttpResponse(status=200)
 
@@ -159,29 +118,28 @@ def app_settings(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
 
     ######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return redirect('create_checkout_session')
 
     ######################
 
-    user_object = global_container.get_user_object(user_id)
+    user_object = repeticio_api.get_user_object(user_id)
     if user_object is None:
         user_object = {}
 
     ######################
 
-    learning_language = global_container.get_learning_language(user_id)
+    learning_language = repeticio_api.get_learning_language(user_id)
 
     if learning_language is None:
         return redirect('select_learning_language')
     
-    user_words = global_container.get_user_words(user_id, 
+    user_words = repeticio_api.get_user_words(user_id, 
                                                  learning_language, 
                                                  False)
     
@@ -230,20 +188,18 @@ def home(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
     
-    global_container = get_global_container()
-    
     ######################
 
-    did_create_user = global_container.create_user_if_needed(user_id)
+    did_create_user = repeticio_api.create_user_if_needed(user_id)
 
-    success, redirect_view = global_container.redirect_if_new_user(user_id)
+    success, redirect_view = repeticio_api.redirect_if_new_user(user_id)
     
     if not success:# could be "select_ui_language" or "select_learning_language"
         return redirect(redirect_view)
     
     ######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return redirect('create_checkout_session')
@@ -261,11 +217,10 @@ def select_ui_language(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
     
-    did_create_user = global_container.create_user_if_needed(user_id)
+    did_create_user = repeticio_api.create_user_if_needed(user_id)
 
-    supported_languages = global_container.get_supported_languages()
+    supported_languages = repeticio_api.get_supported_languages()
 
     if not supported_languages:
         return JsonResponse({"error": "Failed to get supported_languages"}, status=500)
@@ -283,11 +238,10 @@ def select_learning_language(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
     
-    did_create_user = global_container.create_user_if_needed(user_id)
+    did_create_user = repeticio_api.create_user_if_needed(user_id)
 
-    supported_languages = global_container.get_supported_languages()
+    supported_languages = repeticio_api.get_supported_languages()
 
     if not supported_languages:
         return JsonResponse({"error": "Failed to get supported_languages"}, status=500)
@@ -308,11 +262,9 @@ def get_created_exercise(request):
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
 
-    global_container = get_global_container()
-
     ######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return JsonResponse({"error": "User not subscribed"}, status=403)
@@ -320,7 +272,7 @@ def get_created_exercise(request):
     ######################
 
     (exercise, 
-     success) = global_container.get_created_exercise(user_id)
+     success) = repeticio_api.get_created_exercise(user_id)
     
     if not success:
         return JsonResponse({"error": "Failed to get created exercise"}, status=500)
@@ -350,18 +302,17 @@ def create_new_exercise(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
 
     ######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return JsonResponse({"error": "User not subscribed"}, status=403)
 
     ######################
 
-    success = global_container.create_new_exercise(user_id)
+    success = repeticio_api.create_new_exercise(user_id)
     
     if not success:
         return JsonResponse({"error": "Failed to get new exercise"}, status=500)
@@ -377,11 +328,10 @@ def apply_thumbs_up_or_down(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
 
     #######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return JsonResponse({"error": "User not subscribed"}, status=403)
@@ -400,7 +350,7 @@ def apply_thumbs_up_or_down(request):
     
     thumbs_up = True if thumbs_up.lower() == "true" else False
 
-    success = global_container.apply_thumbs_up_or_down(user_id,
+    success = repeticio_api.apply_thumbs_up_or_down(user_id,
                                                         exercise_id, 
                                                         thumbs_up)
     
@@ -414,7 +364,6 @@ def set_learning_language(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
 
     data = request.GET
 
@@ -426,7 +375,7 @@ def set_learning_language(request):
     
     learning_language = data.get("language")
 
-    success = global_container.set_learning_language(user_id, learning_language)
+    success = repeticio_api.set_learning_language(user_id, learning_language)
     if not success:
         return JsonResponse({"error": "Failed to set learning language"}, status=500)
     
@@ -441,7 +390,6 @@ def set_ui_language(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
 
     data = request.GET
 
@@ -453,7 +401,7 @@ def set_ui_language(request):
     
     ui_language = data.get("language")
 
-    success = global_container.set_ui_language(user_id, ui_language)
+    success = repeticio_api.set_ui_language(user_id, ui_language)
     if not success:
         return JsonResponse({"error": "Failed to set UI language"}, status=500)
     
@@ -468,11 +416,10 @@ def submit_answer(request):
     user_id = request.user.email
     if len(OPEN_LANGUAGE_APP_ALLOWED_USER_IDS) and user_id not in OPEN_LANGUAGE_APP_ALLOWED_USER_IDS:
         return HttpResponse("You are not allowed to access this page.", status=403)
-    global_container = get_global_container()
     
     ######################
 
-    is_subscribed = check_subscription_pipeline(global_container, user_id)
+    is_subscribed = repeticio_api.check_subscription_pipeline(user_id)
 
     if not is_subscribed:
         return JsonResponse({"error": "User not subscribed"}, status=403)
@@ -491,7 +438,7 @@ def submit_answer(request):
 
     (success, 
      message,
-     correct) = global_container.submit_answer(user_id, 
+     correct) = repeticio_api.submit_answer(user_id, 
                                                 exercise_id,
                                                 answer)
     
